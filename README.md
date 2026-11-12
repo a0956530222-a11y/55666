@@ -20,3 +20,11 @@ python3 -m http.server 8000
 再用瀏覽器開啟 http://localhost:8000/ 。
 
 驗證方式：送出一筆虛構報修，確認畫面顯示「已送出報修」，且清單最上方出現這筆資料與自動產生的登記時間。
+
+## 台中美食轉轉樂（PWA）
+
+`wheel/` 資料夾是可以安裝到手機的轉盤 App，與報修系統無關，只是共用同一個 GitHub Pages。
+
+- 網址：https://a0956530222-a11y.github.io/55666/wheel/
+- 本機預覽：在儲存庫根目錄執行 `python3 -m http.server 8000`，開啟 http://localhost:8000/wheel/ 。
+- 修改 `wheel/` 裡的任何檔案後，要把 `wheel/sw.js` 的 `CACHE` 版本號加一，已安裝的手機才會更新。

@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>台中美食轉轉樂</title>
+<meta name="description" content="轉一下決定在台中去哪家吃：14 家常被推薦的老店名店。">
+<meta name="theme-color" content="#0f6b63" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1918" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="美食轉轉樂">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body>
+<style>
+  /* 版面：轉盤是主角，置中；下方是結果卡與可編輯的餐點清單。寬螢幕時左右並排。 */
+  :root {
+    --bg: #eef3f2;
+    --surface: #ffffff;
+    --fg: #14302e;
+    --muted: #5a716e;
+    --line: #cfdcda;
+    --accent: #0f6b63;
+    --accent-fg: #ffffff;
+    --sun: #e3a21a;
+    --seg-1: #0f6b63;
+    --seg-2: #e3a21a;
+    --seg-3: #2f8f84;
+    --seg-4: #f2c45a;
+    --seg-ink-dark: #14302e;
+    --seg-ink-light: #ffffff;
+    --font-display: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    --font-body: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
+      --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
+      --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
+      --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
+    --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
+    --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
+    --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 24px; }
+  header h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    line-height: 1.2;
+    margin: 0;
+    text-wrap: balance;
+  }
+  header h1 span { color: var(--sun); }
+  header p { margin: 6px 0 0; color: var(--muted); }
+
+  .layout { display: grid; gap: 24px; grid-template-columns: 1fr; align-items: start; }
+  @media (min-width: 820px) { .layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
+
+  .stage { display: grid; justify-items: center; gap: 16px; min-width: 0; }
+  .wheel-box { position: relative; width: min(100%, 440px); aspect-ratio: 1; max-width: 100%; }
+  .wheel-box canvas { width: 100%; height: 100%; display: block; }
+  .pointer {
+    position: absolute; left: 50%; top: -6px; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 16px solid transparent; border-right: 16px solid transparent;
+    border-top: 28px solid var(--fg);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
+  }
+  .hub {
+    position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%);
+    width: 26%; aspect-ratio: 1; border-radius: 50%;
+    background: var(--surface); border: 4px solid var(--fg);
+    display: grid; place-items: center;
+    font: 900 clamp(1rem, 4vw, 1.4rem) var(--font-display); color: var(--fg);
+    cursor: pointer; padding: 0;
+  }
+  .hub:disabled { cursor: wait; }
+
+  .spin-btn {
+    font: 700 1.1rem var(--font-body);
+    background: var(--accent); color: var(--accent-fg);
+    border: 0; border-radius: 999px; padding: 12px 36px; min-height: 48px; cursor: pointer;
+  }
+  .spin-btn:disabled { opacity: .6; cursor: wait; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+
+  .panel { display: grid; gap: 16px; min-width: 0; }
+  .result {
+    background: var(--surface); border: 2px solid var(--fg); border-radius: 14px;
+    padding: 16px 18px; min-height: 132px;
+  }
+  .result .label { font-size: .8rem; letter-spacing: .08em; color: var(--muted); margin: 0; }
+  .result .name { font: 900 clamp(1.6rem, 6vw, 2.2rem)/1.25 var(--font-display); margin: 4px 0; overflow-wrap: anywhere; }
+  .result .meta { margin: 0; color: var(--muted); }
+  .result .meta b { color: var(--fg); font-weight: 700; }
+  .result.pop .name { animation: pop .45s ease-out; }
+  @keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  .box { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 10px; }
+  .box h2 { font-size: 1rem; margin: 0; }
+  .filters, .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filter {
+    font: 500 .95rem var(--font-body); color: var(--fg);
+    background: transparent; border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 14px; min-height: 38px; cursor: pointer;
+  }
+  .filter[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 4px 2px 12px; font-size: .92rem; max-width: 100%;
+  }
+  .chip span { overflow-wrap: anywhere; }
+  .chip button {
+    border: 0; background: transparent; color: var(--muted); cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%; font-size: 1.1rem; line-height: 1;
+  }
+  .chip button:hover { color: var(--fg); background: var(--bg); }
+  .chip.off { opacity: .4; }
+
+  .add { display: flex; gap: 8px; }
+  .add input {
+    flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--fg);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; min-height: 44px;
+  }
+  .add button, .reset {
+    font: 500 .95rem var(--font-body); border-radius: 10px; cursor: pointer; min-height: 44px; padding: 8px 14px;
+  }
+  .add button { background: var(--fg); color: var(--bg); border: 0; }
+  .reset { background: transparent; color: var(--muted); border: 1px solid var(--line); justify-self: start; }
+  .hint { font-size: .85rem; color: var(--muted); margin: 0; }
+
+  @media (prefers-reduced-motion: reduce) { .result.pop .name { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>台中美食<span>轉轉樂</span></h1>
+    <p>台中的老店名店太多，不知道先去哪一家？轉一下，讓轉盤幫你決定。</p>
+  </header>
+
+  <div class="layout">
+    <section class="stage" aria-label="轉盤">
+      <div class="wheel-box">
+        <canvas id="wheel" width="880" height="880" aria-hidden="true"></canvas>
+        <div class="pointer" aria-hidden="true"></div>
+        <button id="hub" class="hub" type="button" aria-label="轉動轉盤">轉！</button>
+      </div>
+      <button id="spin" class="spin-btn" type="button">轉一下</button>
+    </section>
+
+    <section class="panel">
+      <div id="result" class="result" aria-live="polite">
+        <p class="label">今天就吃</p>
+        <p class="name" id="result-name">按「轉一下」開始</p>
+        <p class="meta" id="result-meta">清單裡有 <b id="count">0</b> 個選項。</p>
+      </div>
+
+      <div class="box">
+        <h2>只轉這一類</h2>
+        <div class="filters" id="filters" role="group" aria-label="篩選類別"></div>
+      </div>
+
+      <div class="box">
+        <h2>轉盤上的選項</h2>
+        <div class="chips" id="chips"></div>
+        <form class="add" id="add-form">
+          <input id="add-input" type="text" maxlength="20" placeholder="加入你想吃的店" aria-label="新增選項">
+          <button type="submit">加入</button>
+        </form>
+        <button class="reset" id="reset" type="button">恢復預設清單</button>
+        <p class="hint" id="install-hint" hidden></p>
+        <p class="hint">店家資料整理自網路文章，營業時間和地址可能變動，出發前請先確認。按 × 可以移除選項，你的清單只會存在這個瀏覽器。</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var DEFAULTS = [
+    { name: "李海魯肉飯", cat: "小吃", area: "第二市場", note: "從下午賣到凌晨，第二市場的必吃魯肉飯。" },
+    { name: "山河魯肉飯", cat: "小吃", area: "第二市場", note: "和李海各有擁護者的市場老店。" },
+    { name: "顏記肉包", cat: "小吃", area: "第二市場", note: "在地人推薦的市場肉包。" },
+    { name: "老蔡大麵焿", cat: "小吃", area: "市區", note: "約 40 年的大麵焿老店，一週只開兩天，先看粉專公告。" },
+    { name: "老賴茶棧", cat: "冰品飲料", area: "第二市場", note: "市場裡的古早味紅茶老攤。" },
+    { name: "春水堂 創始店", cat: "冰品飲料", area: "西區四維街", note: "被視為珍珠奶茶的發源店。" },
+    { name: "一中豐仁冰", cat: "冰品飲料", area: "北區育才街", note: "約 70 年老店，蜜花豆、冰淇淋配酸梅冰。" },
+    { name: "豐仁冰 創始店", cat: "冰品飲料", area: "一中商圈", note: "蜜豆、粉圓、芋圓配料豐富的冰品老店。" },
+    { name: "宮原眼科", cat: "冰品飲料", area: "中區中山路", note: "日治時期眼科建築改成的冰淇淋與甜點店。" },
+    { name: "太陽堂老店", cat: "伴手禮", area: "自由路二段 25 號", note: "1954 年創立，台中太陽餅的代表店家。" },
+    { name: "23 號太陽餅", cat: "伴手禮", area: "自由路", note: "自由路上常被推薦的太陽餅老店。" },
+    { name: "阿明師老店", cat: "伴手禮", area: "市區", note: "常被列入台中太陽餅名店。" },
+    { name: "犁記餅店", cat: "伴手禮", area: "市區", note: "老字號餅店，常被列入台中太陽餅名店。" },
+    { name: "金味坊太陽餅", cat: "伴手禮", area: "市區", note: "不加豬油與雞蛋，吃素的人也能吃。" }
+  ];
+  var CATS = ["全部", "小吃", "冰品飲料", "伴手禮", "自訂"];
+  var STORE = "taichung-wheel-v3";
+
+  var items = load();
+  var filter = "全部";
+  var rotation = 0;
+  var spinning = false;
+
+  var canvas = document.getElementById("wheel");
+  var ctx = canvas.getContext("2d");
+  var spinBtn = document.getElementById("spin");
+  var hub = document.getElementById("hub");
+  var resultBox = document.getElementById("result");
+  var resultName = document.getElementById("result-name");
+  var resultMeta = document.getElementById("result-meta");
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULTS.map(function (d) { return Object.assign({}, d); });
+  }
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(items)); } catch (e) {}
+  }
+
+  function active() {
+    return items.filter(function (it) { return filter === "全部" || it.cat === filter; });
+  }
+
+  function token(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  function draw() {
+    var list = active();
+    var W = canvas.width, R = W / 2, cx = R, cy = R;
+    ctx.clearRect(0, 0, W, W);
+    var segFill = [token("--seg-1"), token("--seg-2"), token("--seg-3"), token("--seg-4")];
+    var inkLight = token("--seg-ink-light"), inkDark = token("--seg-ink-dark");
+    var rim = token("--fg");
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation);
+
+    if (!list.length) {
+      ctx.beginPath(); ctx.arc(0, 0, R - 8, 0, Math.PI * 2);
+      ctx.fillStyle = token("--surface"); ctx.fill();
+      ctx.restore();
+      drawRim(rim, R);
+      return;
+    }
+
+    var seg = Math.PI * 2 / list.length;
+    for (var i = 0; i < list.length; i++) {
+      var start = -Math.PI / 2 + i * seg;
+      var colorIdx = i % 4;
+      // 選項數是 4 的倍數加 1 時，避免最後一格和第一格同色。
+      if (i === list.length - 1 && list.length % 4 === 1 && list.length > 1) colorIdx = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.arc(0, 0, R - 8, start, start + seg);
+      ctx.closePath();
+      ctx.fillStyle = segFill[colorIdx];
+      ctx.fill();
+
+      ctx.save();
+      ctx.rotate(start + seg / 2);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = (colorIdx % 2 === 0) ? inkLight : inkDark;
+      var size = Math.max(22, Math.min(40, 360 / Math.max(list.length, 6)));
+      ctx.font = "700 " + size + "px " + token("--font-display");
+      var text = list[i].name;
+      var maxW = R * 0.62;
+      while (ctx.measureText(text).width > maxW && text.length > 1) text = text.slice(0, -1);
+      if (text !== list[i].name) text = text.slice(0, -1) + "…";
+      ctx.fillText(text, R - 34, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+    drawRim(rim, R);
+  }
+
+  function drawRim(color, R) {
+    ctx.beginPath();
+    ctx.arc(R, R, R - 8, 0, Math.PI * 2);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  }
+
+  function renderFilters() {
+    var box = document.getElementById("filters");
+    box.replaceChildren();
+    CATS.forEach(function (c) {
+      var n = c === "全部" ? items.length : items.filter(function (it) { return it.cat === c; }).length;
+      if (c === "自訂" && !n) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "filter";
+      b.textContent = c + " " + n;
+      b.setAttribute("aria-pressed", String(filter === c));
+      b.disabled = spinning;
+      b.addEventListener("click", function () { filter = c; renderAll(); });
+      box.appendChild(b);
+    });
+  }
+
+  function renderChips() {
+    var box = document.getElementById("chips");
+    box.replaceChildren();
+    items.forEach(function (it, idx) {
+      var chip = document.createElement("span");
+      chip.className = "chip" + (filter === "全部" || it.cat === filter ? "" : " off");
+      var label = document.createElement("span");
+      label.textContent = it.area ? it.name + "・" + it.area : it.name;
+      var x = document.createElement("button");
+      x.type = "button";
+      x.textContent = "×";
+      x.setAttribute("aria-label", "移除 " + it.name);
+      x.disabled = spinning;
+      x.addEventListener("click", function () { items.splice(idx, 1); save(); renderAll(); });
+      chip.appendChild(label);
+      chip.appendChild(x);
+      box.appendChild(chip);
+    });
+  }
+
+  function renderAll() {
+    var list = active();
+    if (!list.length && filter !== "全部") { filter = "全部"; list = active(); }
+    var countEl = document.getElementById("count");
+    if (countEl) countEl.textContent = list.length;
+    spinBtn.disabled = hub.disabled = spinning || list.length < 2;
+    renderFilters();
+    renderChips();
+    draw();
+  }
+
+  function spin() {
+    var list = active();
+    if (spinning || list.length < 2) return;
+    spinning = true;
+    renderAll();
+    resultBox.classList.remove("pop");
+    resultName.textContent = "轉轉轉……";
+
+    var seg = Math.PI * 2 / list.length;
+    var pick = Math.floor(Math.random() * list.length);
+    var jitter = (Math.random() - 0.5) * seg * 0.7;
+    var target = (pick + 0.5) * seg + jitter;   // 指針要停在這格的中間附近
+    var TAU = Math.PI * 2;
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var turns = reduce ? 1 : 5 + Math.floor(Math.random() * 3);
+    var from = rotation;
+    var delta = ((-target - from) % TAU + TAU) % TAU;
+    var to = from + turns * TAU + delta;
+    var duration = reduce ? 600 : 4200 + Math.random() * 800;
+    var t0 = performance.now();
+
+    function frame(now) {
+      var t = Math.min(1, (now - t0) / duration);
+      var eased = 1 - Math.pow(1 - t, 4);
+      rotation = from + (to - from) * eased;
+      draw();
+      if (t < 1) { requestAnimationFrame(frame); return; }
+      rotation = to % TAU;
+      spinning = false;
+      var it = list[pick];
+      resultName.textContent = it.name;
+      var bits = [];
+      if (it.area) bits.push("<b>" + escapeHtml(it.area) + "</b>");
+      if (it.note) bits.push(escapeHtml(it.note));
+      resultMeta.innerHTML = bits.join("　") || "就決定是它了！";
+      void resultBox.offsetWidth;
+      resultBox.classList.add("pop");
+      renderAll();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  spinBtn.addEventListener("click", spin);
+  hub.addEventListener("click", spin);
+
+  document.getElementById("add-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var input = document.getElementById("add-input");
+    var name = input.value.trim();
+    if (!name) return;
+    items.push({ name: name, cat: "自訂", area: "", note: "" });
+    input.value = "";
+    save();
+    renderAll();
+  });
+
+  document.getElementById("reset").addEventListener("click", function () {
+    items = DEFAULTS.map(function (d) { return Object.assign({}, d); });
+    filter = "全部";
+    save();
+    renderAll();
+  });
+
+  // 主題切換或字型載入完成時重畫，讓轉盤顏色與字型跟著更新。
+  if (window.matchMedia) {
+    var mq = matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", draw);
+  }
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+
+  renderAll();
+})();
+</script>
+<script>
+  // 註冊 service worker，讓 App 可以安裝到手機並離線使用。
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+  // iPhone 的 Safari 沒有安裝按鈕，提示使用者手動加入主畫面。
+  (function () {
+    var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var hint = document.getElementById("install-hint");
+    if (!standalone && ios && hint) {
+      hint.textContent = "想裝到手機：在 Safari 按「分享」→「加入主畫面」。";
+      hint.hidden = false;
+    }
+  })();
+</script>
+</body>
+</html>
