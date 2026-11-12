@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>台中美食轉轉樂</title>
-<meta name="description" content="轉一下決定在台中去哪家吃：14 家常被推薦的老店名店。">
+<title>台中轉轉樂</title>
+<meta name="description" content="美食、桌遊密室、登山三個轉盤，轉一下決定在台中吃什麼、玩什麼、爬哪座山。">
 <meta name="theme-color" content="#0f6b63" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1918" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="美食轉轉樂">
+<meta name="apple-mobile-web-app-title" content="台中轉轉樂">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
@@ -156,14 +156,27 @@
   .reset { background: transparent; color: var(--muted); border: 1px solid var(--line); justify-self: start; }
   .hint { font-size: .85rem; color: var(--muted); margin: 0; }
 
+  .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+  .tab { font: 700 1rem var(--font-body); color: var(--muted); background: transparent; border: 0;
+    border-radius: 10px; min-height: 46px; padding: 6px 4px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); }
+  .tab:disabled { cursor: wait; }
+
   @media (prefers-reduced-motion: reduce) { .result.pop .name { animation: none; } }
 </style>
 
 <div class="wrap">
   <header>
-    <h1>台中美食<span>轉轉樂</span></h1>
-    <p>台中的老店名店太多，不知道先去哪一家？轉一下，讓轉盤幫你決定。</p>
+    <h1>台中<span>轉轉樂</span></h1>
+    <p id="intro"></p>
   </header>
+
+  <nav class="tabs" role="tablist" aria-label="選擇轉盤">
+    <button class="tab" type="button" role="tab" id="tab-food" data-key="food">美食</button>
+    <button class="tab" type="button" role="tab" id="tab-games" data-key="games">桌遊密室</button>
+    <button class="tab" type="button" role="tab" id="tab-hike" data-key="hike">登山</button>
+  </nav>
 
   <div class="layout">
     <section class="stage" aria-label="轉盤">
@@ -177,13 +190,13 @@
 
     <section class="panel">
       <div id="result" class="result" aria-live="polite">
-        <p class="label">今天就吃</p>
+        <p class="label" id="result-label"></p>
         <p class="name" id="result-name">按「轉一下」開始</p>
         <p class="meta" id="result-meta">清單裡有 <b id="count">0</b> 個選項。</p>
       </div>
 
       <div class="box">
-        <h2>只轉這一類</h2>
+        <h2 id="filter-title">只轉這一類</h2>
         <div class="filters" id="filters" role="group" aria-label="篩選類別"></div>
       </div>
 
@@ -191,12 +204,12 @@
         <h2>轉盤上的選項</h2>
         <div class="chips" id="chips"></div>
         <form class="add" id="add-form">
-          <input id="add-input" type="text" maxlength="20" placeholder="加入你想吃的店" aria-label="新增選項">
+          <input id="add-input" type="text" maxlength="20" placeholder="" aria-label="新增選項">
           <button type="submit">加入</button>
         </form>
         <button class="reset" id="reset" type="button">恢復預設清單</button>
         <p class="hint" id="install-hint" hidden></p>
-        <p class="hint">店家資料整理自網路文章，營業時間和地址可能變動，出發前請先確認。按 × 可以移除選項，你的清單只會存在這個瀏覽器。</p>
+        <p class="hint" id="data-hint"></p>
       </div>
     </section>
   </div>
@@ -205,27 +218,90 @@
 <script>
 (function () {
   "use strict";
-  var DEFAULTS = [
-    { name: "李海魯肉飯", cat: "小吃", area: "第二市場", note: "從下午賣到凌晨，第二市場的必吃魯肉飯。" },
-    { name: "山河魯肉飯", cat: "小吃", area: "第二市場", note: "和李海各有擁護者的市場老店。" },
-    { name: "顏記肉包", cat: "小吃", area: "第二市場", note: "在地人推薦的市場肉包。" },
-    { name: "老蔡大麵焿", cat: "小吃", area: "市區", note: "約 40 年的大麵焿老店，一週只開兩天，先看粉專公告。" },
-    { name: "老賴茶棧", cat: "冰品飲料", area: "第二市場", note: "市場裡的古早味紅茶老攤。" },
-    { name: "春水堂 創始店", cat: "冰品飲料", area: "西區四維街", note: "被視為珍珠奶茶的發源店。" },
-    { name: "一中豐仁冰", cat: "冰品飲料", area: "北區育才街", note: "約 70 年老店，蜜花豆、冰淇淋配酸梅冰。" },
-    { name: "豐仁冰 創始店", cat: "冰品飲料", area: "一中商圈", note: "蜜豆、粉圓、芋圓配料豐富的冰品老店。" },
-    { name: "宮原眼科", cat: "冰品飲料", area: "中區中山路", note: "日治時期眼科建築改成的冰淇淋與甜點店。" },
-    { name: "太陽堂老店", cat: "伴手禮", area: "自由路二段 25 號", note: "1954 年創立，台中太陽餅的代表店家。" },
-    { name: "23 號太陽餅", cat: "伴手禮", area: "自由路", note: "自由路上常被推薦的太陽餅老店。" },
-    { name: "阿明師老店", cat: "伴手禮", area: "市區", note: "常被列入台中太陽餅名店。" },
-    { name: "犁記餅店", cat: "伴手禮", area: "市區", note: "老字號餅店，常被列入台中太陽餅名店。" },
-    { name: "金味坊太陽餅", cat: "伴手禮", area: "市區", note: "不加豬油與雞蛋，吃素的人也能吃。" }
-  ];
-  var CATS = ["全部", "小吃", "冰品飲料", "伴手禮", "自訂"];
-  var STORE = "taichung-wheel-v3";
+  // 三個轉盤的預設資料。每個轉盤的清單分開存在這個瀏覽器。
+  var WHEELS = {
+    food: {
+      intro: "台中的老店名店太多，不知道先去哪一家？轉一下，讓轉盤幫你決定。",
+      label: "今天就吃",
+      filterTitle: "只轉這一類",
+      placeholder: "加入你想吃的店",
+      hint: "店家資料整理自網路文章，營業時間和地址可能變動，出發前請先確認。",
+      cats: ["全部", "小吃", "冰品飲料", "伴手禮", "自訂"],
+      defaults: [
+        { name: "李海魯肉飯", cat: "小吃", area: "第二市場", note: "從下午賣到凌晨，第二市場的必吃魯肉飯。" },
+        { name: "山河魯肉飯", cat: "小吃", area: "第二市場", note: "和李海各有擁護者的市場老店。" },
+        { name: "顏記肉包", cat: "小吃", area: "第二市場", note: "在地人推薦的市場肉包。" },
+        { name: "老蔡大麵焿", cat: "小吃", area: "市區", note: "約 40 年的大麵焿老店，一週只開兩天，先看粉專公告。" },
+        { name: "老賴茶棧", cat: "冰品飲料", area: "第二市場", note: "市場裡的古早味紅茶老攤。" },
+        { name: "春水堂 創始店", cat: "冰品飲料", area: "西區四維街", note: "被視為珍珠奶茶的發源店。" },
+        { name: "一中豐仁冰", cat: "冰品飲料", area: "北區育才街", note: "約 70 年老店，蜜花豆、冰淇淋配酸梅冰。" },
+        { name: "豐仁冰 創始店", cat: "冰品飲料", area: "一中商圈", note: "蜜豆、粉圓、芋圓配料豐富的冰品老店。" },
+        { name: "宮原眼科", cat: "冰品飲料", area: "中區中山路", note: "日治時期眼科建築改成的冰淇淋與甜點店。" },
+        { name: "太陽堂老店", cat: "伴手禮", area: "自由路二段 25 號", note: "1954 年創立，台中太陽餅的代表店家。" },
+        { name: "23 號太陽餅", cat: "伴手禮", area: "自由路", note: "自由路上常被推薦的太陽餅老店。" },
+        { name: "阿明師老店", cat: "伴手禮", area: "市區", note: "常被列入台中太陽餅名店。" },
+        { name: "犁記餅店", cat: "伴手禮", area: "市區", note: "老字號餅店，常被列入台中太陽餅名店。" },
+        { name: "金味坊太陽餅", cat: "伴手禮", area: "市區", note: "不加豬油與雞蛋，吃素的人也能吃。" }
+      ]
+    },
+    games: {
+      intro: "朋友聚會不知道玩什麼？轉一下，決定今晚玩哪款桌遊，或去挑戰哪種密室逃脫。",
+      label: "今晚就玩",
+      filterTitle: "只轉這一類",
+      placeholder: "加入你想玩的桌遊或密室主題",
+      hint: "人數和時間是一般建議，實際依店家規定。",
+      cats: ["全部", "派對歡樂", "推理陣營", "策略經營", "合作", "密室逃脫", "自訂"],
+      defaults: [
+        { name: "德國心臟病", cat: "派對歡樂", area: "2–6 人・15 分鐘", note: "同一種水果剛好 5 個就搶按鈴，拚反應。" },
+        { name: "妙語說書人", cat: "派對歡樂", area: "3–8 人・30 分鐘", note: "用一句話形容手上的圖，讓部分人猜中。" },
+        { name: "機密代號", cat: "派對歡樂", area: "4–8 人・15 分鐘", note: "分兩隊，隊長用一個詞提示多張卡。" },
+        { name: "矮人礦坑", cat: "派對歡樂", area: "3–10 人・30 分鐘", note: "鋪路挖金礦，但有人是偷偷搞破壞的。" },
+        { name: "UNO", cat: "派對歡樂", area: "2–10 人・20 分鐘", note: "規則人人都會，加罰牌最傷感情。" },
+        { name: "阿瓦隆", cat: "推理陣營", area: "5–10 人・30 分鐘", note: "好人出任務、壞人混進去，靠發言找出間諜。" },
+        { name: "狼人殺", cat: "推理陣營", area: "8–18 人・40 分鐘", note: "人多最好玩，需要一位主持人。" },
+        { name: "血染鐘樓", cat: "推理陣營", area: "5–15 人・60 分鐘", note: "角色能力多變的進階版陣營推理。" },
+        { name: "卡坦島", cat: "策略經營", area: "3–4 人・75 分鐘", note: "蒐集資源、交易、蓋村莊和道路。" },
+        { name: "璀璨寶石", cat: "策略經營", area: "2–4 人・30 分鐘", note: "收集寶石買發展卡，新手也容易上手。" },
+        { name: "鐵道任務", cat: "策略經營", area: "2–5 人・45 分鐘", note: "收集車廂卡，連起地圖上的城市。" },
+        { name: "拉密", cat: "策略經營", area: "2–4 人・45 分鐘", note: "數字牌組成順子或同數，長輩也會玩。" },
+        { name: "花火", cat: "合作", area: "2–5 人・25 分鐘", note: "看得到別人的牌卻看不到自己的，一起放煙火。" },
+        { name: "瘟疫危機", cat: "合作", area: "2–4 人・45 分鐘", note: "全隊合作在疫情擴散前研發解藥。" },
+        { name: "恐怖主題密室", cat: "密室逃脫", area: "建議 4–6 人・60–90 分鐘", note: "有 NPC 演員和驚嚇橋段，膽小的人走中間。" },
+        { name: "解謎機關密室", cat: "密室逃脫", area: "建議 3–5 人・60 分鐘", note: "沒有嚇人元素，專心解謎、開機關。" },
+        { name: "劇情沉浸密室", cat: "密室逃脫", area: "建議 4–8 人・90–120 分鐘", note: "每人扮演一個角色，跟著故事一起推進。" },
+        { name: "親子密室", cat: "密室逃脫", area: "建議 2–5 人・45–60 分鐘", note: "題目較簡單，適合帶小朋友。" },
+        { name: "劇本殺", cat: "密室逃脫", area: "建議 5–8 人・3–5 小時", note: "讀劇本、搜證、找出兇手，時間比較長。" }
+      ]
+    },
+    hike: {
+      intro: "這個週末爬哪座山？先選難度，再轉一下決定。",
+      label: "這次就爬",
+      filterTitle: "只轉這個難度",
+      placeholder: "加入你想爬的山或步道",
+      hint: "距離和時間整理自網路文章，僅供參考。出發前請查林業及自然保育署的步道開放公告，颱風或大雨後常會封路。",
+      cats: ["全部", "新手", "中級", "進階", "自訂"],
+      defaults: [
+        { name: "大坑 5 號步道", cat: "新手", area: "北屯・約 1.5 小時", note: "全長 1.4 公里，有觀景平台和涼亭。" },
+        { name: "聚興山／新田步道", cat: "新手", area: "潭子・約 2 小時", note: "長約 3 公里，難度低，適合散步型登山。" },
+        { name: "東卯山", cat: "中級", area: "谷關・約一整天", note: "谷關七雄之一，登山道寬、好走，向陽路段較熱。" },
+        { name: "唐麻丹山", cat: "中級", area: "谷關・來回約 6 小時", note: "七雄入門首選，第一次建議從松鶴部落登山口上。" },
+        { name: "白毛山", cat: "中級", area: "谷關・約一整天", note: "谷關七雄之一，有點陡峭。" },
+        { name: "波津加山", cat: "中級", area: "谷關・來回約 6 小時", note: "谷關七雄之一，一路持續爬升。" },
+        { name: "馬崙山", cat: "中級", area: "谷關・約一整天", note: "谷關七雄之一，出發前先查路況。" },
+        { name: "屋我尾山", cat: "中級", area: "谷關・約一整天", note: "谷關七雄之一，出發前先查路況。" },
+        { name: "八仙山", cat: "進階", area: "谷關・來回至少 8 小時", note: "谷關七雄裡最難的一座，單程約 6 公里。" },
+        { name: "鳶嘴山", cat: "進階", area: "和平・約半天", note: "後段是岩稜，要貼山壁拉繩，下山比上山難。" },
+        { name: "鳶嘴稍來國家步道", cat: "進階", area: "和平・約 9 小時", note: "鳶嘴山連稍來山，全長 6.3 公里，難度中到高。" }
+      ]
+    }
+  };
+  var STORE_PREFIX = "taichung-wheels-v1-";
+  var TAB_KEY = "taichung-wheels-tab";
 
-  var items = load();
-  var filter = "全部";
+  var current = null;      // 目前的轉盤代號
+  var conf = null;         // 目前轉盤的設定
+  var items = [];          // 目前轉盤的選項
+  var filters = {};        // 每個轉盤各自的篩選
   var rotation = 0;
   var spinning = false;
 
@@ -236,47 +312,49 @@
   var resultBox = document.getElementById("result");
   var resultName = document.getElementById("result-name");
   var resultMeta = document.getElementById("result-meta");
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+
+  function copyDefaults() { return conf.defaults.map(function (d) { return Object.assign({}, d); }); }
 
   function load() {
     try {
-      var raw = localStorage.getItem(STORE);
+      var raw = localStorage.getItem(STORE_PREFIX + current);
       if (raw) {
         var parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) return parsed;
       }
     } catch (e) {}
-    return DEFAULTS.map(function (d) { return Object.assign({}, d); });
+    return copyDefaults();
   }
   function save() {
-    try { localStorage.setItem(STORE, JSON.stringify(items)); } catch (e) {}
+    try { localStorage.setItem(STORE_PREFIX + current, JSON.stringify(items)); } catch (e) {}
   }
 
+  function filter() { return filters[current] || "全部"; }
   function active() {
-    return items.filter(function (it) { return filter === "全部" || it.cat === filter; });
+    var f = filter();
+    return items.filter(function (it) { return f === "全部" || it.cat === f; });
   }
 
   function token(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
   function draw() {
     var list = active();
-    var W = canvas.width, R = W / 2, cx = R, cy = R;
+    var W = canvas.width, R = W / 2;
     ctx.clearRect(0, 0, W, W);
     var segFill = [token("--seg-1"), token("--seg-2"), token("--seg-3"), token("--seg-4")];
     var inkLight = token("--seg-ink-light"), inkDark = token("--seg-ink-dark");
     var rim = token("--fg");
 
     ctx.save();
-    ctx.translate(cx, cy);
+    ctx.translate(R, R);
     ctx.rotate(rotation);
-
     if (!list.length) {
       ctx.beginPath(); ctx.arc(0, 0, R - 8, 0, Math.PI * 2);
       ctx.fillStyle = token("--surface"); ctx.fill();
-      ctx.restore();
-      drawRim(rim, R);
+      ctx.restore(); drawRim(rim, R);
       return;
     }
-
     var seg = Math.PI * 2 / list.length;
     for (var i = 0; i < list.length; i++) {
       var start = -Math.PI / 2 + i * seg;
@@ -316,19 +394,28 @@
     ctx.stroke();
   }
 
+  function renderTabs() {
+    tabs.forEach(function (t) {
+      var on = t.dataset.key === current;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      t.disabled = spinning && !on;
+    });
+  }
+
   function renderFilters() {
     var box = document.getElementById("filters");
     box.replaceChildren();
-    CATS.forEach(function (c) {
+    conf.cats.forEach(function (c) {
       var n = c === "全部" ? items.length : items.filter(function (it) { return it.cat === c; }).length;
       if (c === "自訂" && !n) return;
       var b = document.createElement("button");
       b.type = "button";
       b.className = "filter";
       b.textContent = c + " " + n;
-      b.setAttribute("aria-pressed", String(filter === c));
+      b.setAttribute("aria-pressed", String(filter() === c));
       b.disabled = spinning;
-      b.addEventListener("click", function () { filter = c; renderAll(); });
+      b.addEventListener("click", function () { filters[current] = c; renderAll(); });
       box.appendChild(b);
     });
   }
@@ -336,9 +423,10 @@
   function renderChips() {
     var box = document.getElementById("chips");
     box.replaceChildren();
+    var f = filter();
     items.forEach(function (it, idx) {
       var chip = document.createElement("span");
-      chip.className = "chip" + (filter === "全部" || it.cat === filter ? "" : " off");
+      chip.className = "chip" + (f === "全部" || it.cat === f ? "" : " off");
       var label = document.createElement("span");
       label.textContent = it.area ? it.name + "・" + it.area : it.name;
       var x = document.createElement("button");
@@ -353,15 +441,38 @@
     });
   }
 
+  function resetResult() {
+    resultBox.classList.remove("pop");
+    resultName.textContent = "按「轉一下」開始";
+    resultMeta.textContent = "清單裡有 " + active().length + " 個選項。";
+  }
+
   function renderAll() {
     var list = active();
-    if (!list.length && filter !== "全部") { filter = "全部"; list = active(); }
-    var countEl = document.getElementById("count");
-    if (countEl) countEl.textContent = list.length;
+    if (!list.length && filter() !== "全部") { filters[current] = "全部"; list = active(); }
     spinBtn.disabled = hub.disabled = spinning || list.length < 2;
+    renderTabs();
     renderFilters();
     renderChips();
     draw();
+  }
+
+  function selectWheel(key, focusTab) {
+    if (!WHEELS[key] || spinning) return;
+    current = key;
+    conf = WHEELS[key];
+    items = load();
+    rotation = 0;
+    document.getElementById("intro").textContent = conf.intro;
+    document.getElementById("result-label").textContent = conf.label;
+    document.getElementById("filter-title").textContent = conf.filterTitle;
+    document.getElementById("add-input").placeholder = conf.placeholder;
+    document.getElementById("data-hint").textContent = conf.hint + "按 × 可以移除選項，你的清單只會存在這個瀏覽器。";
+    try { localStorage.setItem(TAB_KEY, key); } catch (e) {}
+    if (location.hash !== "#" + key) history.replaceState(null, "", "#" + key);
+    renderAll();
+    resetResult();
+    if (focusTab) document.getElementById("tab-" + key).focus();
   }
 
   function spin() {
@@ -371,6 +482,7 @@
     renderAll();
     resultBox.classList.remove("pop");
     resultName.textContent = "轉轉轉……";
+    resultMeta.textContent = "";
 
     var seg = Math.PI * 2 / list.length;
     var pick = Math.floor(Math.random() * list.length);
@@ -395,10 +507,15 @@
       spinning = false;
       var it = list[pick];
       resultName.textContent = it.name;
-      var bits = [];
-      if (it.area) bits.push("<b>" + escapeHtml(it.area) + "</b>");
-      if (it.note) bits.push(escapeHtml(it.note));
-      resultMeta.innerHTML = bits.join("　") || "就決定是它了！";
+      resultMeta.replaceChildren();
+      if (it.area) {
+        var b = document.createElement("b");
+        b.textContent = it.area;
+        resultMeta.appendChild(b);
+        if (it.note) resultMeta.appendChild(document.createTextNode("　"));
+      }
+      if (it.note) resultMeta.appendChild(document.createTextNode(it.note));
+      if (!it.area && !it.note) resultMeta.textContent = "就決定是它了！";
       void resultBox.offsetWidth;
       resultBox.classList.add("pop");
       renderAll();
@@ -406,14 +523,18 @@
     requestAnimationFrame(frame);
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-
   spinBtn.addEventListener("click", spin);
   hub.addEventListener("click", spin);
+
+  tabs.forEach(function (t, i) {
+    t.addEventListener("click", function () { selectWheel(t.dataset.key); });
+    // 左右方向鍵切換分頁
+    t.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      var next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      selectWheel(next.dataset.key, true);
+    });
+  });
 
   document.getElementById("add-form").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -427,10 +548,16 @@
   });
 
   document.getElementById("reset").addEventListener("click", function () {
-    items = DEFAULTS.map(function (d) { return Object.assign({}, d); });
-    filter = "全部";
+    items = copyDefaults();
+    filters[current] = "全部";
     save();
     renderAll();
+    resetResult();
+  });
+
+  window.addEventListener("hashchange", function () {
+    var key = location.hash.slice(1);
+    if (WHEELS[key] && key !== current) selectWheel(key);
   });
 
   // 主題切換或字型載入完成時重畫，讓轉盤顏色與字型跟著更新。
@@ -441,7 +568,12 @@
   new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
 
-  renderAll();
+  // 開啟時：網址指定的轉盤 > 上次用的轉盤 > 美食
+  var startKey = location.hash.slice(1);
+  if (!WHEELS[startKey]) {
+    try { startKey = localStorage.getItem(TAB_KEY); } catch (e) { startKey = null; }
+  }
+  selectWheel(WHEELS[startKey] ? startKey : "food");
 })();
 </script>
 <script>
