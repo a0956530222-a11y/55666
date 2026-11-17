@@ -342,6 +342,93 @@
   .toggle { display: flex; gap: 10px; align-items: center; font-size: .92rem; cursor: pointer; min-height: 40px; }
   .toggle input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
 
+  /* ===== 下方區塊（最近轉到、只轉這一類、轉盤上的選項）五彩版 ===== */
+  .box {
+    border-top: 0; position: relative; padding-top: 18px;
+  }
+  .box::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 3px;
+    background: linear-gradient(100deg, var(--seg-1), var(--seg-2), var(--seg-3), var(--seg-4), var(--seg-5), var(--seg-6), var(--seg-7), var(--seg-8));
+    opacity: .75;
+  }
+  .panel > .box:nth-child(2) { --box-c: var(--seg-1); --box-c2: var(--seg-3); }
+  .panel > .box:nth-child(3) { --box-c: var(--seg-4); --box-c2: var(--seg-6); }
+  .panel > .box:nth-child(4) { --box-c: var(--seg-7); --box-c2: var(--seg-8); }
+  .box h2 { display: flex; align-items: center; gap: 8px; }
+  .box h2::before {
+    content: ""; width: 14px; height: 14px; border-radius: 4px; flex: none;
+    background: linear-gradient(135deg, var(--box-c, var(--seg-1)), var(--box-c2, var(--seg-3)));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+  }
+
+  /* 最近轉到：每筆一個顏色 */
+  .history li:not(.empty) {
+    align-items: center; padding: 6px 10px; border-radius: 10px;
+    background: color-mix(in srgb, var(--c) 14%, var(--surface));
+    border-left: 4px solid var(--c);
+  }
+  .history li:nth-child(8n+1) { --c: var(--seg-1); }
+  .history li:nth-child(8n+2) { --c: var(--seg-2); }
+  .history li:nth-child(8n+3) { --c: var(--seg-3); }
+  .history li:nth-child(8n+4) { --c: var(--seg-4); }
+  .history li:nth-child(8n+5) { --c: var(--seg-5); }
+  .history li:nth-child(8n+6) { --c: var(--seg-6); }
+  .history li:nth-child(8n+7) { --c: var(--seg-7); }
+  .history li:nth-child(8n+8) { --c: var(--seg-8); }
+  .history .when { color: var(--fg); opacity: .7; }
+  .history .what { font-weight: 700; }
+  .link-btn { color: var(--seg-1); font-weight: 700; }
+  .toggle input { accent-color: var(--seg-5); }
+
+  /* 只轉這一類：未選用彩色框，選中用五彩漸層 */
+  .filter { border: 2px solid var(--c); color: var(--fg); background: color-mix(in srgb, var(--c) 10%, var(--surface)); font-weight: 700; }
+  .filter:nth-child(8n+1) { --c: var(--seg-1); }
+  .filter:nth-child(8n+2) { --c: var(--seg-2); }
+  .filter:nth-child(8n+3) { --c: var(--seg-3); }
+  .filter:nth-child(8n+4) { --c: var(--seg-4); }
+  .filter:nth-child(8n+5) { --c: var(--seg-5); }
+  .filter:nth-child(8n+6) { --c: var(--seg-6); }
+  .filter:nth-child(8n+7) { --c: var(--seg-7); }
+  .filter:nth-child(8n+8) { --c: var(--seg-8); }
+  .filter[aria-pressed="true"] {
+    background: var(--hero-grad); background-size: 200% 100%;
+    color: #ffffff; border-color: transparent; text-shadow: 0 1px 1px rgba(0, 0, 0, .3);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .2);
+  }
+
+  /* 轉盤上的選項：每個選項一個顏色 */
+  .chip {
+    border: 2px solid var(--c);
+    background: color-mix(in srgb, var(--c) 14%, var(--surface));
+    font-weight: 600;
+  }
+  .chip:nth-child(8n+1) { --c: var(--seg-1); }
+  .chip:nth-child(8n+2) { --c: var(--seg-2); }
+  .chip:nth-child(8n+3) { --c: var(--seg-3); }
+  .chip:nth-child(8n+4) { --c: var(--seg-4); }
+  .chip:nth-child(8n+5) { --c: var(--seg-5); }
+  .chip:nth-child(8n+6) { --c: var(--seg-6); }
+  .chip:nth-child(8n+7) { --c: var(--seg-7); }
+  .chip:nth-child(8n+8) { --c: var(--seg-8); }
+  .chip button { color: var(--fg); }
+  .chip button:hover { background: var(--c); color: #ffffff; }
+
+  /* 新增與恢復 */
+  .add input { border: 2px solid var(--seg-6); }
+  .add input:focus { outline: none; border-color: var(--seg-7); box-shadow: 0 0 0 3px color-mix(in srgb, var(--seg-7) 30%, transparent); }
+  .add button {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .25), rgba(255, 255, 255, 0) 60%), linear-gradient(100deg, #6a4fb8, #c04a8a);
+    color: #ffffff; font-weight: 700; text-shadow: 0 1px 1px rgba(0, 0, 0, .3);
+    box-shadow: 0 3px 0 rgba(0, 0, 0, .22);
+  }
+  .add button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, .22); }
+  .reset {
+    border: 2px solid transparent; color: var(--fg); font-weight: 600;
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(100deg, var(--seg-1), var(--seg-3), var(--seg-5), var(--seg-7)) border-box;
+  }
+
   @media (prefers-reduced-motion: reduce) { .result.pop .name, .result.win, .is-spinning .spin-btn { animation: none; } }
 </style>
 
