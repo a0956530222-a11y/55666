@@ -526,11 +526,17 @@
       0 3px 10px -2px color-mix(in srgb, var(--seg-8) 55%, transparent);
   }
   .add button {
-    background: linear-gradient(180deg, rgba(255, 255, 255, .25), rgba(255, 255, 255, 0) 60%), linear-gradient(100deg, #6a4fb8, #c04a8a);
+    /* 「加入」：和「轉一下」同一組深一階的完整彩虹 */
+    background: linear-gradient(180deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, 0) 60%), var(--hero-grad);
+    background-size: 100% 100%, 200% 100%;
+    background-position: 0 0, 0% 50%;
+    transition: transform .08s, box-shadow .08s, background-position .6s ease-out;
     color: #ffffff; font-weight: 700; text-shadow: 0 1px 1px rgba(0, 0, 0, .3);
     box-shadow: 0 3px 0 rgba(0, 0, 0, .22);
   }
   .add button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, .22); }
+  .add button:hover { background-position: 0 0, 50% 50%; }
+  @media (prefers-reduced-motion: reduce) { .add button { transition: none; } }
   .reset {
     border: 2px solid transparent; color: var(--fg); font-weight: 600;
     background:
