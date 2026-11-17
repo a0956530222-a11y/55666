@@ -54,6 +54,7 @@
   }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     background: var(--bg);
     color: var(--fg);
@@ -156,6 +157,27 @@
   .reset { background: transparent; color: var(--muted); border: 1px solid var(--line); justify-self: start; }
   .hint { font-size: .85rem; color: var(--muted); margin: 0; }
 
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .action {
+    font: 500 .95rem var(--font-body); color: var(--fg); text-decoration: none;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 14px; min-height: 40px; display: inline-flex; align-items: center; cursor: pointer;
+  }
+  .action:hover { border-color: var(--fg); }
+  a.action:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+  .share-msg { margin: 8px 0 0; font-size: .85rem; color: var(--muted); }
+
+  .box-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .link-btn { font: 500 .9rem var(--font-body); color: var(--muted); background: transparent; border: 0;
+    padding: 6px 8px; min-height: 36px; cursor: pointer; text-decoration: underline; }
+  .history { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .history li { display: flex; gap: 10px; align-items: baseline; min-width: 0; }
+  .history .when { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+  .history .what { overflow-wrap: anywhere; }
+  .history .empty { color: var(--muted); font-size: .9rem; }
+  .toggle { display: flex; gap: 10px; align-items: center; font-size: .92rem; cursor: pointer; min-height: 40px; }
+  .toggle input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+
   .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
   .tab { font: 700 1rem var(--font-body); color: var(--muted); background: transparent; border: 0;
@@ -193,6 +215,24 @@
         <p class="label" id="result-label"></p>
         <p class="name" id="result-name">按「轉一下」開始</p>
         <p class="meta" id="result-meta">清單裡有 <b id="count">0</b> 個選項。</p>
+        <div class="actions" id="result-actions" hidden>
+          <a class="action" id="result-map" href="#" target="_blank" rel="noopener" hidden>在 Google 地圖找</a>
+          <button class="action" id="result-share" type="button">分享結果</button>
+          <button class="action" id="result-again" type="button">再轉一次</button>
+        </div>
+        <p class="share-msg" id="share-msg" role="status" hidden></p>
+      </div>
+
+      <div class="box">
+        <div class="box-head">
+          <h2>最近轉到</h2>
+          <button class="link-btn" id="history-clear" type="button" hidden>清除</button>
+        </div>
+        <ol class="history" id="history"></ol>
+        <label class="toggle" for="avoid-repeat">
+          <input type="checkbox" id="avoid-repeat" checked>
+          <span>最近轉到的先跳過，不要連續抽到同一個</span>
+        </label>
       </div>
 
       <div class="box">
@@ -226,7 +266,8 @@
       filterTitle: "只轉這一類",
       placeholder: "加入你想吃的店",
       hint: "店家資料整理自網路文章，營業時間和地址可能變動，出發前請先確認。",
-      cats: ["全部", "小吃", "冰品飲料", "伴手禮", "自訂"],
+      map: function (it) { return "台中 " + it.name; },
+      cats: ["全部", "小吃", "冰品飲料", "伴手禮", "逢甲夜市", "自訂"],
       defaults: [
         { name: "李海魯肉飯", cat: "小吃", area: "第二市場", note: "從下午賣到凌晨，第二市場的必吃魯肉飯。" },
         { name: "山河魯肉飯", cat: "小吃", area: "第二市場", note: "和李海各有擁護者的市場老店。" },
@@ -241,7 +282,17 @@
         { name: "23 號太陽餅", cat: "伴手禮", area: "自由路", note: "自由路上常被推薦的太陽餅老店。" },
         { name: "阿明師老店", cat: "伴手禮", area: "市區", note: "常被列入台中太陽餅名店。" },
         { name: "犁記餅店", cat: "伴手禮", area: "市區", note: "老字號餅店，常被列入台中太陽餅名店。" },
-        { name: "金味坊太陽餅", cat: "伴手禮", area: "市區", note: "不加豬油與雞蛋，吃素的人也能吃。" }
+        { name: "金味坊太陽餅", cat: "伴手禮", area: "市區", note: "不加豬油與雞蛋，吃素的人也能吃。" },
+        // 第 2 版新增：逢甲夜市（added 用來把新店家補進舊的清單）
+        { name: "明倫蛋餅", cat: "逢甲夜市", area: "逢甲夜市", note: "現煎蛋餅，逢甲的招牌之一。", added: 2 },
+        { name: "黃家麻油雞", cat: "逢甲夜市", area: "逢甲夜市", note: "推薦點麻油雞麵線湯。", added: 2 },
+        { name: "翰記雞汁燒烤杏鮑菇", cat: "逢甲夜市", area: "逢甲夜市", note: "夜市烤杏鮑菇。", added: 2 },
+        { name: "阿華黑輪店", cat: "逢甲夜市", area: "逢甲夜市", note: "據說開了約 40 年的老攤。", added: 2 },
+        { name: "豐收王國烤蝦", cat: "逢甲夜市", area: "逢甲夜市", note: "不用自己剝殼的懶人蝦。", added: 2 },
+        { name: "元火烤魚", cat: "逢甲夜市", area: "逢甲夜市", note: "招牌火烤魚，也有澎湖牡蠣。", added: 2 },
+        { name: "冒香香冒菜鍋", cat: "逢甲夜市", area: "逢甲夜市", note: "麻辣冒菜，冬天很受歡迎。", added: 2 },
+        { name: "金莎蛤仔", cat: "逢甲夜市", area: "逢甲夜市", note: "鹹蛋黃炒蛤蜊。", added: 2 },
+        { name: "激旨燒鳥", cat: "逢甲夜市", area: "逢甲夜市", note: "人氣排隊的烤雞肉串。", added: 2 }
       ]
     },
     games: {
@@ -250,6 +301,12 @@
       filterTitle: "只轉這一類",
       placeholder: "加入你想玩的桌遊或密室主題",
       hint: "人數和時間是一般建議，實際依店家規定。",
+      map: function (it) {
+        if (it.cat === "密室逃脫") return "台中 密室逃脫";
+        if (it.cat === "自訂") return "台中 " + it.name;
+        return "台中 桌遊店";
+      },
+      mapLabel: function (it) { return it.cat === "密室逃脫" ? "找台中的密室逃脫" : it.cat === "自訂" ? "在 Google 地圖找" : "找台中的桌遊店"; },
       cats: ["全部", "派對歡樂", "推理陣營", "策略經營", "合作", "密室逃脫", "自訂"],
       defaults: [
         { name: "德國心臟病", cat: "派對歡樂", area: "2–6 人・15 分鐘", note: "同一種水果剛好 5 個就搶按鈴，拚反應。" },
@@ -279,6 +336,7 @@
       filterTitle: "只轉這個難度",
       placeholder: "加入你想爬的山或步道",
       hint: "距離和時間整理自網路文章，僅供參考。出發前請查林業及自然保育署的步道開放公告，颱風或大雨後常會封路。",
+      map: function (it) { return "台中 " + it.name; },
       cats: ["全部", "新手", "中級", "進階", "自訂"],
       defaults: [
         { name: "大坑 5 號步道", cat: "新手", area: "北屯・約 1.5 小時", note: "全長 1.4 公里，有觀景平台和涼亭。" },
@@ -302,8 +360,13 @@
   var conf = null;         // 目前轉盤的設定
   var items = [];          // 目前轉盤的選項
   var filters = {};        // 每個轉盤各自的篩選
+  var seen = [];           // 這個瀏覽器已經收過的預設選項名稱
+  var history = [];        // 最近轉到的結果 { name, at }
   var rotation = 0;
   var spinning = false;
+  var lastResult = null;
+  var HISTORY_MAX = 8;
+  var AVOID_KEY = "taichung-wheels-avoid";
 
   var canvas = document.getElementById("wheel");
   var ctx = canvas.getContext("2d");
@@ -316,18 +379,43 @@
 
   function copyDefaults() { return conf.defaults.map(function (d) { return Object.assign({}, d); }); }
 
+  function defaultNames() { return conf.defaults.map(function (d) { return d.name; }); }
+
+  // 讀取這個轉盤的資料。新版加入的預設選項會自動補進舊清單，
+  // 但使用者自己移除過的預設選項不會再跑回來。
   function load() {
+    var data = null;
     try {
       var raw = localStorage.getItem(STORE_PREFIX + current);
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
-      }
+      if (raw) data = JSON.parse(raw);
     } catch (e) {}
-    return copyDefaults();
+    if (Array.isArray(data)) {
+      // 舊格式只存選項陣列，當時的預設是沒有 added 標記的那些。
+      data = { items: data, seen: conf.defaults.filter(function (d) { return !d.added; }).map(function (d) { return d.name; }), history: [] };
+    }
+    if (!data || !Array.isArray(data.items)) {
+      items = copyDefaults();
+      seen = defaultNames();
+      history = [];
+      return;
+    }
+    items = data.items;
+    seen = Array.isArray(data.seen) ? data.seen : defaultNames();
+    history = Array.isArray(data.history) ? data.history.slice(0, HISTORY_MAX) : [];
+    var added = false;
+    conf.defaults.forEach(function (d) {
+      if (seen.indexOf(d.name) === -1) {
+        seen.push(d.name);
+        if (!items.some(function (it) { return it.name === d.name; })) items.push(Object.assign({}, d));
+        added = true;
+      }
+    });
+    if (added) save();
   }
   function save() {
-    try { localStorage.setItem(STORE_PREFIX + current, JSON.stringify(items)); } catch (e) {}
+    try {
+      localStorage.setItem(STORE_PREFIX + current, JSON.stringify({ items: items, seen: seen, history: history }));
+    } catch (e) {}
   }
 
   function filter() { return filters[current] || "全部"; }
@@ -369,8 +457,12 @@
       ctx.fill();
 
       ctx.save();
-      ctx.rotate(start + seg / 2);
-      ctx.textAlign = "right";
+      var mid = start + seg / 2;
+      ctx.rotate(mid);
+      // 字在轉盤左半邊時轉 180 度，讓字永遠是正的。
+      var flip = Math.cos(mid + rotation) < 0;
+      if (flip) ctx.rotate(Math.PI);
+      ctx.textAlign = flip ? "left" : "right";
       ctx.textBaseline = "middle";
       ctx.fillStyle = (colorIdx % 2 === 0) ? inkLight : inkDark;
       var size = Math.max(22, Math.min(40, 360 / Math.max(list.length, 6)));
@@ -379,7 +471,7 @@
       var maxW = R * 0.62;
       while (ctx.measureText(text).width > maxW && text.length > 1) text = text.slice(0, -1);
       if (text !== list[i].name) text = text.slice(0, -1) + "…";
-      ctx.fillText(text, R - 34, 0);
+      ctx.fillText(text, flip ? -(R - 34) : R - 34, 0);
       ctx.restore();
     }
     ctx.restore();
@@ -441,7 +533,55 @@
     });
   }
 
+  var actionsBox = document.getElementById("result-actions");
+  var mapLink = document.getElementById("result-map");
+  var shareBtn = document.getElementById("result-share");
+  var shareMsg = document.getElementById("share-msg");
+  var avoidBox = document.getElementById("avoid-repeat");
+  try { if (localStorage.getItem(AVOID_KEY) === "0") avoidBox.checked = false; } catch (e) {}
+
+  function renderHistory() {
+    var box = document.getElementById("history");
+    box.replaceChildren();
+    document.getElementById("history-clear").hidden = !history.length || spinning;
+    if (!history.length) {
+      var li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "還沒有紀錄，轉一下就會出現在這裡。";
+      box.appendChild(li);
+      return;
+    }
+    history.forEach(function (h) {
+      var li = document.createElement("li");
+      var when = document.createElement("span");
+      when.className = "when";
+      var d = new Date(h.at);
+      when.textContent = isNaN(d) ? "" : d.toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+      var what = document.createElement("span");
+      what.className = "what";
+      what.textContent = h.name;
+      li.appendChild(when);
+      li.appendChild(what);
+      box.appendChild(li);
+    });
+  }
+
+  function showActions(it) {
+    var q = conf.map ? conf.map(it) : null;
+    if (q) {
+      mapLink.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+      mapLink.textContent = conf.mapLabel ? conf.mapLabel(it) : "在 Google 地圖找";
+      mapLink.hidden = false;
+    } else {
+      mapLink.hidden = true;
+    }
+    shareMsg.hidden = true;
+    actionsBox.hidden = false;
+  }
+
   function resetResult() {
+    actionsBox.hidden = true;
+    shareMsg.hidden = true;
     resultBox.classList.remove("pop");
     resultName.textContent = "按「轉一下」開始";
     resultMeta.textContent = "清單裡有 " + active().length + " 個選項。";
@@ -454,6 +594,7 @@
     renderTabs();
     renderFilters();
     renderChips();
+    renderHistory();
     draw();
   }
 
@@ -461,7 +602,8 @@
     if (!WHEELS[key] || spinning) return;
     current = key;
     conf = WHEELS[key];
-    items = load();
+    load();
+    lastResult = null;
     rotation = 0;
     document.getElementById("intro").textContent = conf.intro;
     document.getElementById("result-label").textContent = conf.label;
@@ -469,7 +611,7 @@
     document.getElementById("add-input").placeholder = conf.placeholder;
     document.getElementById("data-hint").textContent = conf.hint + "按 × 可以移除選項，你的清單只會存在這個瀏覽器。";
     try { localStorage.setItem(TAB_KEY, key); } catch (e) {}
-    if (location.hash !== "#" + key) history.replaceState(null, "", "#" + key);
+    if (location.hash !== "#" + key) window.history.replaceState(null, "", "#" + key);
     renderAll();
     resetResult();
     if (focusTab) document.getElementById("tab-" + key).focus();
@@ -485,7 +627,15 @@
     resultMeta.textContent = "";
 
     var seg = Math.PI * 2 / list.length;
-    var pick = Math.floor(Math.random() * list.length);
+    var candidates = list.map(function (_, i) { return i; });
+    if (avoidBox.checked) {
+      // 跳過最近轉到的，但至少留一半的選項可以抽。
+      var skip = Math.min(history.length, Math.floor(list.length / 2));
+      var recent = history.slice(0, skip).map(function (h) { return h.name; });
+      var fresh = candidates.filter(function (i) { return recent.indexOf(list[i].name) === -1; });
+      if (fresh.length) candidates = fresh;
+    }
+    var pick = candidates[Math.floor(Math.random() * candidates.length)];
     var jitter = (Math.random() - 0.5) * seg * 0.7;
     var target = (pick + 0.5) * seg + jitter;   // 指針要停在這格的中間附近
     var TAU = Math.PI * 2;
@@ -516,6 +666,12 @@
       }
       if (it.note) resultMeta.appendChild(document.createTextNode(it.note));
       if (!it.area && !it.note) resultMeta.textContent = "就決定是它了！";
+      lastResult = it;
+      history.unshift({ name: it.name, at: Date.now() });
+      history = history.slice(0, HISTORY_MAX);
+      save();
+      showActions(it);
+      if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
       void resultBox.offsetWidth;
       resultBox.classList.add("pop");
       renderAll();
@@ -524,6 +680,36 @@
   }
 
   spinBtn.addEventListener("click", spin);
+  document.getElementById("result-again").addEventListener("click", spin);
+
+  avoidBox.addEventListener("change", function () {
+    try { localStorage.setItem(AVOID_KEY, avoidBox.checked ? "1" : "0"); } catch (e) {}
+  });
+
+  document.getElementById("history-clear").addEventListener("click", function () {
+    history = [];
+    save();
+    renderHistory();
+  });
+
+  shareBtn.addEventListener("click", function () {
+    if (!lastResult) return;
+    var text = "台中轉轉樂幫我決定：" + conf.label + "「" + lastResult.name + "」" + (lastResult.area ? "（" + lastResult.area + "）" : "");
+    var url = location.href.split("#")[0] + "#" + current;
+    function done(msg) { shareMsg.textContent = msg; shareMsg.hidden = false; }
+    if (navigator.share) {
+      navigator.share({ title: "台中轉轉樂", text: text, url: url }).catch(function () {});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text + " " + url).then(
+        function () { done("已複製，可以貼到 LINE 或訊息給朋友。"); },
+        function () { done(text + " " + url); }
+      );
+    } else {
+      done(text + " " + url);
+    }
+  });
   hub.addEventListener("click", spin);
 
   tabs.forEach(function (t, i) {
