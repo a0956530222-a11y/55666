@@ -313,15 +313,21 @@
   .hint { font-size: .85rem; color: var(--muted); margin: 0; }
 
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  /* 結果卡上的三個按鈕：各用一段深一階的彩虹漸層，白字才清楚 */
   .action {
-    font: 500 .95rem var(--font-body); color: var(--fg); text-decoration: none;
-    background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
-    padding: 8px 14px; min-height: 40px; display: inline-flex; align-items: center; cursor: pointer;
+    font: 700 .95rem var(--font-body); color: #ffffff; text-decoration: none;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, .3);
+    background: linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 60%), var(--action-grad);
+    border: 0; border-radius: 999px;
+    padding: 8px 16px; min-height: 42px; display: inline-flex; align-items: center; cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, .22);
+    transition: transform .08s, box-shadow .08s, filter .15s;
   }
-  .action:hover { border-color: var(--fg); }
-  #result-map { border-color: var(--seg-6); }
-  #result-share { border-color: var(--seg-8); }
-  #result-again { border-color: var(--seg-4); }
+  .action:hover { filter: brightness(1.08); }
+  .action:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, .22); }
+  #result-map { --action-grad: linear-gradient(100deg, #2f6fb8, #6a4fb8); }
+  #result-share { --action-grad: linear-gradient(100deg, #c04a8a, #c93a4a); }
+  #result-again { --action-grad: linear-gradient(100deg, #448a32, #1f8f80); }
   a.action:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
   .share-msg { margin: 8px 0 0; font-size: .85rem; color: var(--muted); }
 
