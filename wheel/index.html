@@ -42,6 +42,9 @@
     --seg-4: #f2c45a;
     --seg-ink-dark: #14302e;
     --seg-ink-light: #ffffff;
+    --wheel-rim: #0d3b37;
+    --wheel-bulb: #fff6dd;
+    --wheel-shadow: rgba(4, 33, 30, .38);
     --font-display: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
     --font-body: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
   }
@@ -52,6 +55,7 @@
       --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
       --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
       --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
+      --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
       color-scheme: dark;
     }
   }
@@ -61,6 +65,7 @@
     --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
     --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
     --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
+    --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
     color-scheme: dark;
   }
 
@@ -140,23 +145,27 @@
   @media (min-width: 820px) { .layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
 
   .stage { display: grid; justify-items: center; gap: 16px; min-width: 0; }
-  .wheel-box { position: relative; width: min(100%, 440px); aspect-ratio: 1; max-width: 100%; }
+  .wheel-box { position: relative; width: min(100%, 440px); aspect-ratio: 880 / 780; max-width: 100%; }
   .wheel-box canvas { width: 100%; height: 100%; display: block; }
+  /* 立體轉盤：轉盤面往後傾斜，畫在 canvas 上；指針和中心鈕用 HTML 疊在上面 */
   .pointer {
-    position: absolute; left: 50%; top: -6px; transform: translateX(-50%);
-    width: 0; height: 0;
-    border-left: 16px solid transparent; border-right: 16px solid transparent;
-    border-top: 28px solid var(--fg);
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
+    position: absolute; left: 50%; top: calc(10.6% - 40px); transform: translateX(-50%);
+    width: 44px; height: 58px; z-index: 2;
+    filter: drop-shadow(0 4px 3px rgba(0, 0, 0, .35));
   }
+  .pointer svg { width: 100%; height: 100%; display: block; }
   .hub {
-    position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%);
-    width: 26%; aspect-ratio: 1; border-radius: 50%;
-    background: var(--surface); border: 4px solid var(--fg);
+    position: absolute; left: 50%; top: 48.5%; transform: translate(-50%, -62%);
+    width: 25%; aspect-ratio: 1.33; border-radius: 50%;
+    background: radial-gradient(ellipse at 38% 30%, #ffffff 0%, #eef5f3 45%, #c9dad6 100%);
+    border: 4px solid var(--wheel-rim);
+    box-shadow: 0 9px 0 var(--wheel-rim), 0 14px 18px rgba(0, 0, 0, .35);
     display: grid; place-items: center;
-    font: 900 clamp(1rem, 4vw, 1.4rem) var(--font-display); color: var(--fg);
+    font: 900 clamp(1rem, 4vw, 1.4rem) var(--font-display); color: #0f6b63;
     cursor: pointer; padding: 0;
+    transition: transform .08s, box-shadow .08s;
   }
+  .hub:active:not(:disabled) { transform: translate(-50%, calc(-62% + 6px)); box-shadow: 0 3px 0 var(--wheel-rim), 0 6px 10px rgba(0, 0, 0, .3); }
   .hub:disabled { cursor: wait; }
 
   .spin-btn {
@@ -270,8 +279,16 @@
   <div class="layout">
     <section class="stage" aria-label="轉盤">
       <div class="wheel-box">
-        <canvas id="wheel" width="880" height="880" aria-hidden="true"></canvas>
-        <div class="pointer" aria-hidden="true"></div>
+        <canvas id="wheel" width="880" height="780" aria-hidden="true"></canvas>
+        <div class="pointer" aria-hidden="true">
+          <svg viewBox="0 0 44 58">
+            <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f7c95c"/><stop offset=".55" stop-color="#e9a21b"/><stop offset="1" stop-color="#b9780c"/></linearGradient></defs>
+            <ellipse cx="22" cy="10" rx="17" ry="7" fill="#0d3b37"/>
+            <path d="M6 10 L38 10 L22 54 Z" fill="url(#pg)" stroke="#0d3b37" stroke-width="3" stroke-linejoin="round"/>
+            <ellipse cx="22" cy="9" rx="14" ry="5" fill="#f7c95c" stroke="#0d3b37" stroke-width="2.5"/>
+            <path d="M14 14 L19 14 L21 34 Z" fill="#ffffff" opacity=".45"/>
+          </svg>
+        </div>
         <button id="hub" class="hub" type="button" aria-label="轉動轉盤">轉！</button>
       </div>
       <button id="spin" class="spin-btn" type="button">轉一下</button>
@@ -493,63 +510,148 @@
 
   function token(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-  function draw() {
-    var list = active();
-    var W = canvas.width, R = W / 2;
-    ctx.clearRect(0, 0, W, W);
-    var segFill = [token("--seg-1"), token("--seg-2"), token("--seg-3"), token("--seg-4")];
-    var inkLight = token("--seg-ink-light"), inkDark = token("--seg-ink-dark");
-    var rim = token("--fg");
-
-    ctx.save();
-    ctx.translate(R, R);
-    ctx.rotate(rotation);
-    if (!list.length) {
-      ctx.beginPath(); ctx.arc(0, 0, R - 8, 0, Math.PI * 2);
-      ctx.fillStyle = token("--surface"); ctx.fill();
-      ctx.restore(); drawRim(rim, R);
-      return;
-    }
-    var seg = Math.PI * 2 / list.length;
-    for (var i = 0; i < list.length; i++) {
-      var start = -Math.PI / 2 + i * seg;
-      var colorIdx = i % 4;
-      // 選項數是 4 的倍數加 1 時，避免最後一格和第一格同色。
-      if (i === list.length - 1 && list.length % 4 === 1 && list.length > 1) colorIdx = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, R - 8, start, start + seg);
-      ctx.closePath();
-      ctx.fillStyle = segFill[colorIdx];
-      ctx.fill();
-
-      ctx.save();
-      var mid = start + seg / 2;
-      ctx.rotate(mid);
-      // 字在轉盤左半邊時轉 180 度，讓字永遠是正的。
-      var flip = Math.cos(mid + rotation) < 0;
-      if (flip) ctx.rotate(Math.PI);
-      ctx.textAlign = flip ? "left" : "right";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = (colorIdx % 2 === 0) ? inkLight : inkDark;
-      var size = Math.max(22, Math.min(40, 360 / Math.max(list.length, 6)));
-      ctx.font = "700 " + size + "px " + token("--font-display");
-      var text = list[i].name;
-      var maxW = R * 0.62;
-      while (ctx.measureText(text).width > maxW && text.length > 1) text = text.slice(0, -1);
-      if (text !== list[i].name) text = text.slice(0, -1) + "…";
-      ctx.fillText(text, flip ? -(R - 34) : R - 34, 0);
-      ctx.restore();
-    }
-    ctx.restore();
-    drawRim(rim, R);
+  // 把 #rrggbb 顏色調暗或調亮（f < 1 變暗，f > 1 變亮）
+  function shade(hex, f) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(hex);
+    if (!m) return hex;
+    var n = parseInt(m[1], 16), out = [];
+    [16, 8, 0].forEach(function (sh) {
+      var c = (n >> sh) & 255;
+      c = f < 1 ? c * f : c + (255 - c) * (f - 1);
+      out.push(Math.max(0, Math.min(255, Math.round(c))));
+    });
+    return "rgb(" + out.join(",") + ")";
   }
 
-  function drawRim(color, R) {
+  // 立體轉盤的幾何設定（以 canvas 寬度為基準）
+  var TILT = 0.74;        // 轉盤面往後傾斜後的高度比例
+  function geo(W) {
+    return { cx: W / 2, cy: W * 0.43, fr: W * 0.45, depth: W * 0.06 };
+  }
+
+  function draw() {
+    var list = active();
+    var W = canvas.width;
+    var g = geo(W), cx = g.cx, cy = g.cy, fr = g.fr, T = g.depth, ry = fr * TILT;
+    ctx.clearRect(0, 0, W, canvas.height);
+    var segFill = [token("--seg-1"), token("--seg-2"), token("--seg-3"), token("--seg-4")];
+    var inkLight = token("--seg-ink-light"), inkDark = token("--seg-ink-dark");
+    var rim = token("--wheel-rim"), bulb = token("--wheel-bulb");
+
+    // 1. 地上的影子
+    ctx.save();
+    ctx.translate(cx, cy + T + ry * 0.18);
+    ctx.scale(1, 0.3);
+    var sg = ctx.createRadialGradient(0, 0, fr * 0.2, 0, 0, fr * 1.08);
+    sg.addColorStop(0, token("--wheel-shadow"));
+    sg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.arc(0, 0, fr * 1.08, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // 2. 轉盤的側面（厚度），左右兩邊加暗，看起來像圓柱
     ctx.beginPath();
-    ctx.arc(R, R, R - 8, 0, Math.PI * 2);
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = color;
+    ctx.ellipse(cx, cy, fr, ry, 0, 0, Math.PI);
+    ctx.ellipse(cx, cy + T, fr, ry, 0, Math.PI, 0, true);
+    ctx.closePath();
+    ctx.fillStyle = shade(rim, 0.8);
+    ctx.fill();
+    var side = ctx.createLinearGradient(cx - fr, 0, cx + fr, 0);
+    side.addColorStop(0, "rgba(0,0,0,.45)");
+    side.addColorStop(0.35, "rgba(255,255,255,.10)");
+    side.addColorStop(0.65, "rgba(0,0,0,.05)");
+    side.addColorStop(1, "rgba(0,0,0,.5)");
+    ctx.fillStyle = side;
+    ctx.fill();
+    // 側面上的燈泡跟著轉
+    var BULBS = 24;
+    for (var b = 0; b < BULBS; b++) {
+      var ba = rotation + b * Math.PI * 2 / BULBS + Math.PI / BULBS;
+      var sy = Math.sin(ba);
+      if (sy <= 0.08) continue;
+      ctx.beginPath();
+      ctx.ellipse(cx + fr * Math.cos(ba), cy + ry * sy + T * 0.5, 3.5 + 3 * sy, 5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = b % 2 ? "rgba(255,246,221,.35)" : "rgba(255,246,221,.8)";
+      ctx.fill();
+    }
+
+    // 3. 轉盤面：外圈＋分格＋文字，全部畫在傾斜的平面上
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(1, TILT);
+    ctx.beginPath(); ctx.arc(0, 0, fr, 0, Math.PI * 2);
+    ctx.fillStyle = rim; ctx.fill();
+    ctx.rotate(rotation);
+    var sr = fr * 0.88;
+    if (!list.length) {
+      ctx.beginPath(); ctx.arc(0, 0, sr, 0, Math.PI * 2);
+      ctx.fillStyle = token("--surface"); ctx.fill();
+    } else {
+      var seg = Math.PI * 2 / list.length;
+      for (var i = 0; i < list.length; i++) {
+        var start = -Math.PI / 2 + i * seg;
+        var colorIdx = i % 4;
+        // 選項數是 4 的倍數加 1 時，避免最後一格和第一格同色。
+        if (i === list.length - 1 && list.length % 4 === 1 && list.length > 1) colorIdx = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, sr, start, start + seg);
+        ctx.closePath();
+        ctx.fillStyle = segFill[colorIdx];
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,.14)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        var mid = start + seg / 2;
+        ctx.rotate(mid);
+        // 字在轉盤左半邊時轉 180 度，讓字永遠是正的。
+        var flip = Math.cos(mid + rotation) < 0;
+        if (flip) ctx.rotate(Math.PI);
+        ctx.textAlign = flip ? "left" : "right";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = (colorIdx % 2 === 0) ? inkLight : inkDark;
+        var size = Math.max(22, Math.min(40, 330 / Math.max(list.length, 6)));
+        ctx.font = "700 " + size + "px " + token("--font-display");
+        var text = list[i].name;
+        var maxW = sr * 0.6;
+        while (ctx.measureText(text).width > maxW && text.length > 1) text = text.slice(0, -1);
+        if (text !== list[i].name) text = text.slice(0, -1) + "…";
+        ctx.fillText(text, flip ? -(sr - 22) : sr - 22, 0);
+        ctx.restore();
+      }
+    }
+    // 外圈的燈泡
+    for (var d = 0; d < BULBS; d++) {
+      var da = d * Math.PI * 2 / BULBS + Math.PI / BULBS;
+      ctx.beginPath();
+      ctx.arc(fr * 0.94 * Math.cos(da), fr * 0.94 * Math.sin(da), d % 2 ? 6 : 9, 0, Math.PI * 2);
+      ctx.fillStyle = bulb;
+      ctx.globalAlpha = d % 2 ? 0.55 : 1;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+
+    // 4. 光澤：上方亮、下方暗
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, fr, ry, 0, 0, Math.PI * 2);
+    ctx.clip();
+    var gloss = ctx.createLinearGradient(0, cy - ry, 0, cy + ry);
+    gloss.addColorStop(0, "rgba(255,255,255,.30)");
+    gloss.addColorStop(0.45, "rgba(255,255,255,0)");
+    gloss.addColorStop(1, "rgba(0,0,0,.18)");
+    ctx.fillStyle = gloss;
+    ctx.fillRect(cx - fr, cy - ry, fr * 2, ry * 2);
+    ctx.restore();
+
+    // 5. 轉盤面的邊線
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, fr, ry, 0, 0, Math.PI * 2);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = shade(rim, 0.6);
     ctx.stroke();
   }
 
