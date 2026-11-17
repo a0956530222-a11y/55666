@@ -441,7 +441,14 @@
   .history li:nth-child(8n+6) { --c: var(--seg-6); }
   .history li:nth-child(8n+7) { --c: var(--seg-7); }
   .history li:nth-child(8n+8) { --c: var(--seg-8); }
-  .history .when { color: var(--fg); opacity: .7; }
+  /* 剩下的小字（紀錄時間、沒有紀錄時的提示、勾選說明、分享訊息）也用深一階的五彩字 */
+  .history .when, .history .empty, .toggle span, .share-msg {
+    background-image: var(--note-grad);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent; -webkit-text-fill-color: transparent;
+    font-weight: 600;
+  }
+  .history .when, .toggle span, .share-msg { width: fit-content; max-width: 100%; }
   .history .what { font-weight: 700; }
   .link-btn { color: var(--seg-1); font-weight: 700; }
   .toggle input { accent-color: var(--seg-5); }
