@@ -29,6 +29,7 @@
     --accent-fg: #ffffff;
     --sun: #e3a21a;
     /* 頂部橫幅：五彩漸層（顏色比轉盤深一階，白字才看得清楚） */
+    --text-grad: linear-gradient(90deg, #c93a4a 0.0%, #c85d22 6.25%, #a87810 12.5%, #448a32 18.75%, #1f8f80 25.0%, #2f6fb8 31.25%, #6a4fb8 37.5%, #c04a8a 43.75%, #c93a4a 50.0%, #c85d22 56.25%, #a87810 62.5%, #448a32 68.75%, #1f8f80 75.0%, #2f6fb8 81.25%, #6a4fb8 87.5%, #c04a8a 93.75%, #c93a4a 100.0%);
     --hero-grad: linear-gradient(100deg, #c93a4a 0.0%, #c85d22 6.25%, #a87810 12.5%, #448a32 18.75%, #1f8f80 25.0%, #2f6fb8 31.25%, #6a4fb8 37.5%, #c04a8a 43.75%, #c93a4a 50.0%, #c85d22 56.25%, #a87810 62.5%, #448a32 68.75%, #1f8f80 75.0%, #2f6fb8 81.25%, #6a4fb8 87.5%, #c04a8a 93.75%, #c93a4a 100.0%);
     --hero-fg: #ffffff;
     --hero-muted: #fff3e0;
@@ -58,7 +59,7 @@
     :root:not([data-theme="light"]) {
       --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
       --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
-      --hero-grad: linear-gradient(100deg, #8f2a36 0.0%, #9a4a1e 6.25%, #86610d 12.5%, #376c29 18.75%, #16655b 25.0%, #214f83 31.25%, #4b3883 37.5%, #883562 43.75%, #8f2a36 50.0%, #9a4a1e 56.25%, #86610d 62.5%, #376c29 68.75%, #16655b 75.0%, #214f83 81.25%, #4b3883 87.5%, #883562 93.75%, #8f2a36 100.0%); --hero-fg: #f4f1ea; --hero-muted: #e6ddd0; --hero-title-accent: #ffe39a; --hero-line: rgba(255, 255, 255, .16); --hero-tab-bg: rgba(0, 0, 0, .32); --hero-tab-on: #f4f1ea; --hero-tab-on-fg: #1b2328;
+      --text-grad: linear-gradient(90deg, #ff7a83 0.0%, #ffa25e 6.25%, #ffd25c 12.5%, #9be27a 18.75%, #4fd6c3 25.0%, #6fb0ff 31.25%, #b39bff 37.5%, #ff8fc4 43.75%, #ff7a83 50.0%, #ffa25e 56.25%, #ffd25c 62.5%, #9be27a 68.75%, #4fd6c3 75.0%, #6fb0ff 81.25%, #b39bff 87.5%, #ff8fc4 93.75%, #ff7a83 100.0%); --hero-grad: linear-gradient(100deg, #8f2a36 0.0%, #9a4a1e 6.25%, #86610d 12.5%, #376c29 18.75%, #16655b 25.0%, #214f83 31.25%, #4b3883 37.5%, #883562 43.75%, #8f2a36 50.0%, #9a4a1e 56.25%, #86610d 62.5%, #376c29 68.75%, #16655b 75.0%, #214f83 81.25%, #4b3883 87.5%, #883562 93.75%, #8f2a36 100.0%); --hero-fg: #f4f1ea; --hero-muted: #e6ddd0; --hero-title-accent: #ffe39a; --hero-line: rgba(255, 255, 255, .16); --hero-tab-bg: rgba(0, 0, 0, .32); --hero-tab-on: #f4f1ea; --hero-tab-on-fg: #1b2328;
       --seg-1: #d9434f; --seg-2: #e47b2c; --seg-3: #e5b336; --seg-4: #69b049; --seg-5: #24a191; --seg-6: #357fcb; --seg-7: #7a5ec4; --seg-8: #d65b97;
       --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
       --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
@@ -68,7 +69,7 @@
   :root[data-theme="dark"] {
     --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
     --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
-    --hero-grad: linear-gradient(100deg, #8f2a36 0.0%, #9a4a1e 6.25%, #86610d 12.5%, #376c29 18.75%, #16655b 25.0%, #214f83 31.25%, #4b3883 37.5%, #883562 43.75%, #8f2a36 50.0%, #9a4a1e 56.25%, #86610d 62.5%, #376c29 68.75%, #16655b 75.0%, #214f83 81.25%, #4b3883 87.5%, #883562 93.75%, #8f2a36 100.0%); --hero-fg: #f4f1ea; --hero-muted: #e6ddd0; --hero-title-accent: #ffe39a; --hero-line: rgba(255, 255, 255, .16); --hero-tab-bg: rgba(0, 0, 0, .32); --hero-tab-on: #f4f1ea; --hero-tab-on-fg: #1b2328;
+    --text-grad: linear-gradient(90deg, #ff7a83 0.0%, #ffa25e 6.25%, #ffd25c 12.5%, #9be27a 18.75%, #4fd6c3 25.0%, #6fb0ff 31.25%, #b39bff 37.5%, #ff8fc4 43.75%, #ff7a83 50.0%, #ffa25e 56.25%, #ffd25c 62.5%, #9be27a 68.75%, #4fd6c3 75.0%, #6fb0ff 81.25%, #b39bff 87.5%, #ff8fc4 93.75%, #ff7a83 100.0%); --hero-grad: linear-gradient(100deg, #8f2a36 0.0%, #9a4a1e 6.25%, #86610d 12.5%, #376c29 18.75%, #16655b 25.0%, #214f83 31.25%, #4b3883 37.5%, #883562 43.75%, #8f2a36 50.0%, #9a4a1e 56.25%, #86610d 62.5%, #376c29 68.75%, #16655b 75.0%, #214f83 81.25%, #4b3883 87.5%, #883562 93.75%, #8f2a36 100.0%); --hero-fg: #f4f1ea; --hero-muted: #e6ddd0; --hero-title-accent: #ffe39a; --hero-line: rgba(255, 255, 255, .16); --hero-tab-bg: rgba(0, 0, 0, .32); --hero-tab-on: #f4f1ea; --hero-tab-on-fg: #1b2328;
     --seg-1: #d9434f; --seg-2: #e47b2c; --seg-3: #e5b336; --seg-4: #69b049; --seg-5: #24a191; --seg-6: #357fcb; --seg-7: #7a5ec4; --seg-8: #d65b97;
     --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
     --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
@@ -297,6 +298,16 @@
     text-shadow: 0 1px 1px rgba(0, 0, 0, .3);
   }
   .result .name { font: 900 clamp(1.6rem, 6vw, 2.2rem)/1.25 var(--font-display); margin: 4px 0; overflow-wrap: anywhere; }
+  /* 結果文字：五彩漸層字（深色模式用亮一點的彩虹） */
+  .result .name, .result .meta b {
+    background-image: var(--text-grad); background-size: 200% 100%; background-position: 0% 50%;
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent; -webkit-text-fill-color: transparent;
+  }
+  .result .name { padding-bottom: .06em; width: fit-content; max-width: 100%; }
+  .result .meta b { background-size: 100% 100%; background-image: linear-gradient(90deg, var(--seg-6), var(--seg-7), var(--seg-8)); }
+  .result.pop.win .name { animation: pop .45s ease-out, name-shine 1.8s ease-out; }
+  @keyframes name-shine { from { background-position: 100% 50%; } to { background-position: 0% 50%; } }
   .result .meta { margin: 0; color: var(--muted); }
   .result .meta b { color: var(--fg); font-weight: 700; }
   .result.pop .name { animation: pop .45s ease-out; }
@@ -460,7 +471,7 @@
       linear-gradient(100deg, var(--seg-1), var(--seg-3), var(--seg-5), var(--seg-7)) border-box;
   }
 
-  @media (prefers-reduced-motion: reduce) { .result.pop .name, .result.win, .is-spinning .spin-btn { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .result.pop .name, .result.pop.win .name, .result.win, .is-spinning .spin-btn { animation: none; } }
 </style>
 
 <header class="hero">
