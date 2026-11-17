@@ -1,6 +1,6 @@
 // 台中轉轉樂的 service worker：先存好 App 檔案，沒有網路也能開啟。
 // 修改任何檔案後，請把 CACHE 的版本號加一，手機才會更新到新版。
-const CACHE = "taichung-wheels-v2";
+const CACHE = "taichung-wheels-v3";
 const FILES = [
   "./",
   "./index.html",
@@ -8,6 +8,8 @@ const FILES = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
+  "./icons/icon-maskable-192.png",
+  "./icons/favicon-32.png",
   "./icons/apple-touch-icon.png"
 ];
 
