@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>台中轉轉樂</title>
 <meta name="description" content="美食、桌遊密室、登山三個轉盤，轉一下決定在台中吃什麼、玩什麼、爬哪座山。">
-<meta name="theme-color" content="#14857a" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#143a36" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#1f8f80" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16655b" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -28,14 +28,15 @@
     --accent: #0f6b63;
     --accent-fg: #ffffff;
     --sun: #e3a21a;
-    --hero-top: #14857a;
-    --hero-bottom: #0a4a44;
-    --hero-fg: #fff8e7;
-    --hero-muted: #cfe8e3;
-    --hero-line: rgba(255, 248, 231, .22);
-    --hero-tab-bg: rgba(4, 33, 30, .28);
-    --hero-tab-on: #fff8e7;
-    --hero-tab-on-fg: #0f6b63;
+    /* 頂部橫幅：五彩漸層（顏色比轉盤深一階，白字才看得清楚） */
+    --hero-grad: linear-gradient(100deg, #c93a4a 0.0%, #c85d22 6.25%, #a87810 12.5%, #448a32 18.75%, #1f8f80 25.0%, #2f6fb8 31.25%, #6a4fb8 37.5%, #c04a8a 43.75%, #c93a4a 50.0%, #c85d22 56.25%, #a87810 62.5%, #448a32 68.75%, #1f8f80 75.0%, #2f6fb8 81.25%, #6a4fb8 87.5%, #c04a8a 93.75%, #c93a4a 100.0%);
+    --hero-fg: #ffffff;
+    --hero-muted: #fff3e0;
+    --hero-title-accent: #fff1b8;
+    --hero-line: rgba(255, 255, 255, .26);
+    --hero-tab-bg: rgba(0, 0, 0, .22);
+    --hero-tab-on: #ffffff;
+    --hero-tab-on-fg: #23313a;
     /* 轉盤八色（五彩） */
     --seg-1: #e8505b;
     --seg-2: #f58b3a;
@@ -57,7 +58,7 @@
     :root:not([data-theme="light"]) {
       --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
       --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
-      --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
+      --hero-grad: linear-gradient(100deg, #8f2a36 0.0%, #9a4a1e 6.25%, #86610d 12.5%, #376c29 18.75%, #16655b 25.0%, #214f83 31.25%, #4b3883 37.5%, #883562 43.75%, #8f2a36 50.0%, #9a4a1e 56.25%, #86610d 62.5%, #376c29 68.75%, #16655b 75.0%, #214f83 81.25%, #4b3883 87.5%, #883562 93.75%, #8f2a36 100.0%); --hero-fg: #f4f1ea; --hero-muted: #e6ddd0; --hero-title-accent: #ffe39a; --hero-line: rgba(255, 255, 255, .16); --hero-tab-bg: rgba(0, 0, 0, .32); --hero-tab-on: #f4f1ea; --hero-tab-on-fg: #1b2328;
       --seg-1: #d9434f; --seg-2: #e47b2c; --seg-3: #e5b336; --seg-4: #69b049; --seg-5: #24a191; --seg-6: #357fcb; --seg-7: #7a5ec4; --seg-8: #d65b97;
       --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
       --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
@@ -67,7 +68,7 @@
   :root[data-theme="dark"] {
     --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
     --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
-    --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
+    --hero-grad: linear-gradient(100deg, #8f2a36 0.0%, #9a4a1e 6.25%, #86610d 12.5%, #376c29 18.75%, #16655b 25.0%, #214f83 31.25%, #4b3883 37.5%, #883562 43.75%, #8f2a36 50.0%, #9a4a1e 56.25%, #86610d 62.5%, #376c29 68.75%, #16655b 75.0%, #214f83 81.25%, #4b3883 87.5%, #883562 93.75%, #8f2a36 100.0%); --hero-fg: #f4f1ea; --hero-muted: #e6ddd0; --hero-title-accent: #ffe39a; --hero-line: rgba(255, 255, 255, .16); --hero-tab-bg: rgba(0, 0, 0, .32); --hero-tab-on: #f4f1ea; --hero-tab-on-fg: #1b2328;
     --seg-1: #d9434f; --seg-2: #e47b2c; --seg-3: #e5b336; --seg-4: #69b049; --seg-5: #24a191; --seg-6: #357fcb; --seg-7: #7a5ec4; --seg-8: #d65b97;
     --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
     --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
@@ -94,8 +95,11 @@
   /* 頂部橫幅：滿版漸層，延伸到手機狀態列底下 */
   .hero {
     position: relative; overflow: hidden;
-    background: linear-gradient(170deg, var(--hero-top), var(--hero-bottom));
+    background: var(--hero-grad);
+    background-size: 200% 100%;
+    background-position: 0% 50%;
     color: var(--hero-fg);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
     padding-top: calc(20px + env(safe-area-inset-top, 0px));
     padding-bottom: 18px;
   }
@@ -106,6 +110,9 @@
   .hero::before { width: 340px; height: 340px; right: -110px; top: -120px; opacity: .55; }
   .hero::after { width: 160px; height: 160px; left: -60px; bottom: -80px; opacity: .35; }
   .is-spinning .hero::before { animation: hero-spin 1.2s linear infinite; }
+  /* 轉動時五彩漸層跟著流動 */
+  .is-spinning .hero { animation: hero-flow 2.4s linear infinite; }
+  @keyframes hero-flow { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
   @keyframes hero-spin { to { transform: rotate(360deg); } }
   .hero-in {
     position: relative; z-index: 1;
@@ -139,7 +146,7 @@
     font-size: clamp(1.9rem, 6.5vw, 2.7rem); line-height: 1.15; margin: 2px 0 0;
     letter-spacing: .02em;
   }
-  .hero h1 span { color: var(--sun); }
+  .hero h1 span { color: var(--hero-title-accent); }
   .intro { margin: 0; color: var(--hero-muted); max-width: 40em; }
   @media (max-width: 600px) { .intro { min-height: 3.2em; } }
 
@@ -155,11 +162,11 @@
   }
   .tab svg { width: 20px; height: 20px; flex: none; }
   .tab:hover { background: rgba(255, 255, 255, .08); }
-  .tab[aria-selected="true"] { background: var(--hero-tab-on); color: var(--hero-tab-on-fg); box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+  .tab[aria-selected="true"] { background: var(--hero-tab-on); color: var(--hero-tab-on-fg); box-shadow: 0 2px 8px rgba(0, 0, 0, .2); text-shadow: none; }
   .tab:disabled { cursor: wait; }
   .tab:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
   @media (max-width: 340px) { .tab svg { display: none; } }
-  @media (prefers-reduced-motion: reduce) { .is-spinning .hero::before { animation: none; } .tab { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .is-spinning .hero::before, .is-spinning .hero { animation: none; } .tab { transition: none; } }
 
   .layout { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); align-items: start; }
   @media (min-width: 820px) { .layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
