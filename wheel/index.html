@@ -162,7 +162,25 @@
   }
   .tab svg { width: 20px; height: 20px; flex: none; }
   .tab:hover { background: rgba(255, 255, 255, .08); }
-  .tab[aria-selected="true"] { background: var(--hero-tab-on); color: var(--hero-tab-on-fg); box-shadow: 0 2px 8px rgba(0, 0, 0, .2); text-shadow: none; }
+  /* 分頁各有自己的顏色：美食紅橘、桌遊密室藍紫、登山綠青 */
+  #tab-food { --t1: #c93a4a; --t2: #c85d22; --t-light: #ffb48a; }
+  #tab-games { --t1: #2f6fb8; --t2: #6a4fb8; --t-light: #b9b3ff; }
+  #tab-hike { --t1: #448a32; --t2: #1f8f80; --t-light: #a6efb4; }
+  .tab { position: relative; }
+  .tab svg { color: var(--t-light); }
+  .tab::after {
+    content: ""; position: absolute; left: 26%; right: 26%; bottom: 5px; height: 3px; border-radius: 3px;
+    background: var(--t-light); opacity: .9;
+  }
+  .tab[aria-selected="true"] {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, 0) 60%),
+      linear-gradient(100deg, var(--t1), var(--t2));
+    color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .92), 0 4px 12px rgba(0, 0, 0, .3);
+  }
+  .tab[aria-selected="true"] svg { color: #ffffff; }
+  .tab[aria-selected="true"]::after { display: none; }
   .tab:disabled { cursor: wait; }
   .tab:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
   @media (max-width: 340px) { .tab svg { display: none; } }
