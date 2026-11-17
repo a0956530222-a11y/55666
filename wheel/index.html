@@ -132,7 +132,20 @@
   .sound-btn .ico-off { display: none; }
   .sound-btn[aria-pressed="false"] .ico-on { display: none; }
   .sound-btn[aria-pressed="false"] .ico-off { display: inline; }
-  .sound-btn[aria-pressed="false"] { opacity: .75; }
+  /* 音效開：五彩漸層＋白框；音效關：暗色、圖示變灰 */
+  .sound-btn[aria-pressed="true"] {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, 0) 60%),
+      linear-gradient(100deg, #6a4fb8, #c04a8a, #c93a4a, #c85d22);
+    border-color: transparent;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .92), 0 3px 10px rgba(0, 0, 0, .28);
+    font-weight: 700;
+  }
+  .sound-btn[aria-pressed="false"] {
+    background: rgba(0, 0, 0, .35); color: rgba(255, 255, 255, .78);
+    border: 1px dashed rgba(255, 255, 255, .5);
+  }
+  .sound-btn[aria-pressed="false"] svg { color: rgba(255, 255, 255, .6); }
   .sound-btn:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
   @media (max-width: 380px) { .sound-label { display: none; } .sound-btn { padding: 6px 9px; } }
   .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
