@@ -153,7 +153,12 @@
     width: 44px; height: 58px; z-index: 2;
     filter: drop-shadow(0 4px 3px rgba(0, 0, 0, .35));
   }
-  .pointer svg { width: 100%; height: 100%; display: block; }
+  .pointer svg { width: 100%; height: 100%; display: block; transform-origin: 50% 15%; transition: transform .07s ease-out; }
+  .pointer.tick svg { transform: rotate(-14deg); }
+  .wheel-box canvas { touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; }
+  .wheel-box canvas.grabbing { cursor: grabbing; }
+  .wheel-hint { margin: -6px 0 0; font-size: .85rem; color: var(--muted); text-align: center; }
+  @media (prefers-reduced-motion: reduce) { .pointer svg { transition: none; } }
   .hub {
     position: absolute; left: 50%; top: 48.5%; transform: translate(-50%, -62%);
     width: 25%; aspect-ratio: 1.33; border-radius: 50%;
@@ -292,6 +297,7 @@
         <button id="hub" class="hub" type="button" aria-label="轉動轉盤">轉！</button>
       </div>
       <button id="spin" class="spin-btn" type="button">轉一下</button>
+      <p class="wheel-hint" id="wheel-hint">也可以用手指按住轉盤，用力一撥</p>
     </section>
 
     <section class="panel">
@@ -787,67 +793,208 @@
     if (focusTab) document.getElementById("tab-" + key).focus();
   }
 
-  function spin() {
-    var list = active();
-    if (spinning || list.length < 2) return;
-    spinning = true;
-    renderAll();
-    resultBox.classList.remove("pop");
-    resultName.textContent = "轉轉轉……";
-    resultMeta.textContent = "";
+  var TAU = Math.PI * 2;
+  function prefersReduce() { return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; }
 
-    var seg = Math.PI * 2 / list.length;
+  // 抽一個結果；開啟「跳過最近轉到的」時，最近的先不抽，但至少留一半選項。
+  function pickIndex(list) {
     var candidates = list.map(function (_, i) { return i; });
     if (avoidBox.checked) {
-      // 跳過最近轉到的，但至少留一半的選項可以抽。
       var skip = Math.min(history.length, Math.floor(list.length / 2));
       var recent = history.slice(0, skip).map(function (h) { return h.name; });
       var fresh = candidates.filter(function (i) { return recent.indexOf(list[i].name) === -1; });
       if (fresh.length) candidates = fresh;
     }
-    var pick = candidates[Math.floor(Math.random() * candidates.length)];
-    var jitter = (Math.random() - 0.5) * seg * 0.7;
-    var target = (pick + 0.5) * seg + jitter;   // 指針要停在這格的中間附近
-    var TAU = Math.PI * 2;
-    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return candidates;
+  }
+
+  // 指針目前指著第幾格
+  function indexAtPointer(n, rot) {
+    var local = ((-rot) % TAU + TAU) % TAU;
+    return Math.floor(local / (TAU / n)) % n;
+  }
+
+  // 經過每一格時：指針彈一下、手機輕震
+  var pointerEl = document.querySelector(".pointer");
+  var lastTickIdx = null, lastBuzz = 0, tickTimer = null;
+  function checkTick(n) {
+    if (n < 2) return;
+    var idx = indexAtPointer(n, rotation);
+    if (lastTickIdx === null) { lastTickIdx = idx; return; }
+    if (idx === lastTickIdx) return;
+    lastTickIdx = idx;
+    pointerEl.classList.add("tick");
+    clearTimeout(tickTimer);
+    tickTimer = setTimeout(function () { pointerEl.classList.remove("tick"); }, 70);
+    var now = performance.now();
+    if (navigator.vibrate && now - lastBuzz > 45) {
+      lastBuzz = now;
+      try { navigator.vibrate(6); } catch (e) {}
+    }
+  }
+
+  function beginSpin() {
+    spinning = true;
+    renderAll();
+    resultBox.classList.remove("pop");
+    resultName.textContent = "轉轉轉……";
+    resultMeta.textContent = "";
+    actionsBox.hidden = true;
+    shareMsg.hidden = true;
+  }
+
+  function finishSpin(list, pick) {
+    rotation = ((rotation % TAU) + TAU) % TAU;
+    spinning = false;
+    var it = list[pick];
+    resultName.textContent = it.name;
+    resultMeta.replaceChildren();
+    if (it.area) {
+      var b = document.createElement("b");
+      b.textContent = it.area;
+      resultMeta.appendChild(b);
+      if (it.note) resultMeta.appendChild(document.createTextNode("　"));
+    }
+    if (it.note) resultMeta.appendChild(document.createTextNode(it.note));
+    if (!it.area && !it.note) resultMeta.textContent = "就決定是它了！";
+    lastResult = it;
+    history.unshift({ name: it.name, at: Date.now() });
+    history = history.slice(0, HISTORY_MAX);
+    save();
+    showActions(it);
+    if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+    void resultBox.offsetWidth;
+    resultBox.classList.add("pop");
+    renderAll();
+  }
+
+  // 按按鈕：固定的加速再減速
+  function spin() {
+    var list = active();
+    if (spinning || dragging || list.length < 2) return;
+    beginSpin();
+    var seg = TAU / list.length;
+    var cands = pickIndex(list);
+    var pick = cands[Math.floor(Math.random() * cands.length)];
+    var target = (pick + 0.5) * seg + (Math.random() - 0.5) * seg * 0.7;   // 指針停在這格中間附近
+    var reduce = prefersReduce();
     var turns = reduce ? 1 : 5 + Math.floor(Math.random() * 3);
     var from = rotation;
     var delta = ((-target - from) % TAU + TAU) % TAU;
     var to = from + turns * TAU + delta;
     var duration = reduce ? 600 : 4200 + Math.random() * 800;
     var t0 = performance.now();
-
+    lastTickIdx = indexAtPointer(list.length, rotation);
     function frame(now) {
       var t = Math.min(1, (now - t0) / duration);
-      var eased = 1 - Math.pow(1 - t, 4);
-      rotation = from + (to - from) * eased;
+      rotation = from + (to - from) * (1 - Math.pow(1 - t, 4));
       draw();
+      checkTick(list.length);
       if (t < 1) { requestAnimationFrame(frame); return; }
-      rotation = to % TAU;
-      spinning = false;
-      var it = list[pick];
-      resultName.textContent = it.name;
-      resultMeta.replaceChildren();
-      if (it.area) {
-        var b = document.createElement("b");
-        b.textContent = it.area;
-        resultMeta.appendChild(b);
-        if (it.note) resultMeta.appendChild(document.createTextNode("　"));
-      }
-      if (it.note) resultMeta.appendChild(document.createTextNode(it.note));
-      if (!it.area && !it.note) resultMeta.textContent = "就決定是它了！";
-      lastResult = it;
-      history.unshift({ name: it.name, at: Date.now() });
-      history = history.slice(0, HISTORY_MAX);
-      save();
-      showActions(it);
-      if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
-      void resultBox.offsetWidth;
-      resultBox.classList.add("pop");
-      renderAll();
+      finishSpin(list, pick);
     }
     requestAnimationFrame(frame);
   }
+
+  // 手指撥動：用放手時的速度開始轉，再平均減速停下。
+  // 會在接近自然停止點的地方挑一個結果，讓轉動距離跟撥的力道相符。
+  function flick(velocity) {
+    var list = active();
+    if (spinning || list.length < 2) return;
+    var dir = velocity > 0 ? 1 : -1;
+    var v = Math.min(Math.abs(velocity), 28);                 // 每秒弧度
+    var reduce = prefersReduce();
+    var decel = reduce ? 40 : 7;                              // 每秒平方弧度
+    var natural = v * v / (2 * decel);
+    var minTravel = reduce ? TAU * 0.5 : TAU * 1.2;
+    var want = Math.max(natural, minTravel);
+    var seg = TAU / list.length;
+    var cands = pickIndex(list);
+    // 從候選裡挑落點最接近自然停止點的幾個，再隨機選一個
+    var options = cands.map(function (i) {
+      var target = (i + 0.5) * seg + (Math.random() - 0.5) * seg * 0.6;
+      var base = dir > 0 ? ((-target - rotation) % TAU + TAU) % TAU : ((rotation + target) % TAU + TAU) % TAU;
+      var k = Math.max(0, Math.round((want - base) / TAU));
+      var travel = base + k * TAU;
+      if (travel < minTravel) travel += TAU;
+      return { i: i, travel: travel, diff: Math.abs(travel - want) };
+    }).sort(function (a, b) { return a.diff - b.diff; });
+    var choice = options[Math.floor(Math.random() * Math.min(3, options.length))];
+    var travel = choice.travel;
+    var a = v * v / (2 * travel);                             // 讓初速剛好在這段距離內停下
+    var duration = v / a;
+    beginSpin();
+    var from = rotation, t0 = performance.now();
+    lastTickIdx = indexAtPointer(list.length, rotation);
+    function frame(now) {
+      var t = Math.min(duration, (now - t0) / 1000);
+      rotation = from + dir * (v * t - a * t * t / 2);
+      draw();
+      checkTick(list.length);
+      if (t < duration) { requestAnimationFrame(frame); return; }
+      rotation = from + dir * travel;
+      finishSpin(list, choice.i);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // 拖曳轉盤
+  var dragging = false, dragAngle = 0, samples = [], dragMoved = 0;
+  var wheelHint = document.getElementById("wheel-hint");
+  function pointerAngle(e) {
+    var r = canvas.getBoundingClientRect();
+    var scale = canvas.width / r.width;
+    var g = geo(canvas.width);
+    var x = (e.clientX - r.left) * scale - g.cx;
+    var y = ((e.clientY - r.top) * scale - g.cy) / TILT;      // 還原傾斜，算出轉盤面上的角度
+    return { angle: Math.atan2(y, x), dist: Math.sqrt(x * x + y * y), fr: g.fr };
+  }
+  canvas.addEventListener("pointerdown", function (e) {
+    if (spinning || active().length < 2) return;
+    var pa = pointerAngle(e);
+    if (pa.dist > pa.fr * 1.05 || pa.dist < pa.fr * 0.12) return;
+    dragging = true; dragMoved = 0;
+    dragAngle = pa.angle;
+    samples = [{ t: performance.now(), r: rotation }];
+    lastTickIdx = indexAtPointer(active().length, rotation);
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    canvas.classList.add("grabbing");
+    e.preventDefault();
+  });
+  canvas.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    var pa = pointerAngle(e);
+    var d = pa.angle - dragAngle;
+    if (d > Math.PI) d -= TAU;
+    if (d < -Math.PI) d += TAU;
+    dragAngle = pa.angle;
+    rotation += d;
+    dragMoved += Math.abs(d);
+    var now = performance.now();
+    samples.push({ t: now, r: rotation });
+    while (samples.length > 2 && now - samples[0].t > 100) samples.shift();
+    draw();
+    checkTick(active().length);
+  });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    canvas.classList.remove("grabbing");
+    var now = performance.now();
+    while (samples.length > 2 && now - samples[0].t > 100) samples.shift();
+    var first = samples[0], last = samples[samples.length - 1];
+    var dt = (last.t - first.t) / 1000;
+    var vel = dt > 0.005 && now - last.t < 80 ? (last.r - first.r) / dt : 0;
+    if (Math.abs(vel) > 3) {
+      wheelHint.textContent = "也可以用手指按住轉盤，用力一撥";
+      flick(vel);
+    } else if (dragMoved > 0.05) {
+      wheelHint.textContent = "撥快一點、放手，轉盤才會轉起來";
+    }
+  }
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+  canvas.addEventListener("lostpointercapture", endDrag);
 
   spinBtn.addEventListener("click", spin);
   document.getElementById("result-again").addEventListener("click", spin);
