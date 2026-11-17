@@ -189,15 +189,40 @@
   .hub {
     position: absolute; left: 50%; top: 48.5%; transform: translate(-50%, -62%);
     width: 25%; aspect-ratio: 1.33; border-radius: 50%;
-    background: radial-gradient(ellipse at 38% 30%, #ffffff 0%, #eef5f3 45%, #c9dad6 100%);
-    border: 4px solid var(--wheel-rim);
-    box-shadow: 0 9px 0 var(--wheel-rim), 0 14px 18px rgba(0, 0, 0, .35);
+    /* 五彩轉鈕：上面是彩虹面＋光澤，底下用 ::before 畫出較暗的彩虹側邊 */
+    --hub-rainbow: #e8505b, #f58b3a, #f6c344, #7cc35a, #2fb5a3, #3f8fdc, #8b6fd6, #e86aa8, #e8505b;
+    isolation: isolate;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
     display: grid; place-items: center;
-    font: 900 clamp(1rem, 4vw, 1.4rem) var(--font-display); color: #0f6b63;
+    font: 900 clamp(1rem, 4vw, 1.4rem) var(--font-display); color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, .35), 0 2px 6px rgba(0, 0, 0, .45);
     cursor: pointer; padding: 0;
     transition: transform .08s, box-shadow .08s;
   }
-  .hub:active:not(:disabled) { transform: translate(-50%, calc(-62% + 6px)); box-shadow: 0 3px 0 var(--wheel-rim), 0 6px 10px rgba(0, 0, 0, .3); }
+  /* 側邊（往下的厚度）在最底層，彩虹面蓋在上面，字在最上面 */
+  .hub::before {
+    content: ""; position: absolute; z-index: -2;
+    left: 0; right: 0; top: 9px; bottom: -9px; border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--hub-rainbow));
+    filter: brightness(.6);
+    border: 3px solid var(--wheel-rim);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, .35);
+    transition: top .08s, bottom .08s;
+  }
+  .hub::after {
+    content: ""; position: absolute; z-index: -1; inset: 0; border-radius: 50%;
+    background:
+      radial-gradient(ellipse at 36% 26%, rgba(255, 255, 255, .85) 0%, rgba(255, 255, 255, .25) 32%, rgba(255, 255, 255, 0) 55%),
+      conic-gradient(from 0deg, var(--hub-rainbow));
+    border: 3px solid var(--wheel-rim);
+  }
+  .is-spinning .hub { animation: hub-hue 1.6s linear infinite; }
+  @keyframes hub-hue { to { filter: hue-rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .is-spinning .hub { animation: none; } }
+  .hub:active:not(:disabled) { transform: translate(-50%, calc(-62% + 6px)); }
+  .hub:active:not(:disabled)::before { top: 3px; bottom: -3px; }
   .hub:disabled { cursor: wait; }
 
   .spin-btn {
