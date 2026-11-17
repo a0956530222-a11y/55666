@@ -36,10 +36,15 @@
     --hero-tab-bg: rgba(4, 33, 30, .28);
     --hero-tab-on: #fff8e7;
     --hero-tab-on-fg: #0f6b63;
-    --seg-1: #0f6b63;
-    --seg-2: #e3a21a;
-    --seg-3: #2f8f84;
-    --seg-4: #f2c45a;
+    /* 轉盤八色（五彩） */
+    --seg-1: #e8505b;
+    --seg-2: #f58b3a;
+    --seg-3: #f6c344;
+    --seg-4: #7cc35a;
+    --seg-5: #2fb5a3;
+    --seg-6: #3f8fdc;
+    --seg-7: #8b6fd6;
+    --seg-8: #e86aa8;
     --seg-ink-dark: #14302e;
     --seg-ink-light: #ffffff;
     --wheel-rim: #0d3b37;
@@ -53,7 +58,7 @@
       --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
       --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
       --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
-      --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
+      --seg-1: #d9434f; --seg-2: #e47b2c; --seg-3: #e5b336; --seg-4: #69b049; --seg-5: #24a191; --seg-6: #357fcb; --seg-7: #7a5ec4; --seg-8: #d65b97;
       --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
       --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
       color-scheme: dark;
@@ -63,7 +68,7 @@
     --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
     --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
     --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
-    --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
+    --seg-1: #d9434f; --seg-2: #e47b2c; --seg-3: #e5b336; --seg-4: #69b049; --seg-5: #24a191; --seg-6: #357fcb; --seg-7: #7a5ec4; --seg-8: #d65b97;
     --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
     --wheel-rim: #1f5b55; --wheel-bulb: #fff1c9; --wheel-shadow: rgba(0, 0, 0, .55);
     color-scheme: dark;
@@ -556,6 +561,15 @@
     return "rgb(" + out.join(",") + ")";
   }
 
+  // 判斷顏色亮不亮，決定字要用深色還是白色
+  function isLight(hex) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(hex);
+    if (!m) return false;
+    var n = parseInt(m[1], 16);
+    var lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+    return lum > 0.62;
+  }
+
   // 立體轉盤的幾何設定（以 canvas 寬度為基準）
   var TILT = 0.74;        // 轉盤面往後傾斜後的高度比例
   function geo(W) {
@@ -567,7 +581,7 @@
     var W = canvas.width;
     var g = geo(W), cx = g.cx, cy = g.cy, fr = g.fr, T = g.depth, ry = fr * TILT;
     ctx.clearRect(0, 0, W, canvas.height);
-    var segFill = [token("--seg-1"), token("--seg-2"), token("--seg-3"), token("--seg-4")];
+    var segFill = [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return token("--seg-" + n); });
     var inkLight = token("--seg-ink-light"), inkDark = token("--seg-ink-dark");
     var rim = token("--wheel-rim"), bulb = token("--wheel-bulb");
 
@@ -623,9 +637,9 @@
       var seg = Math.PI * 2 / list.length;
       for (var i = 0; i < list.length; i++) {
         var start = -Math.PI / 2 + i * seg;
-        var colorIdx = i % 4;
+        var colorIdx = i % segFill.length;
         // 選項數是 4 的倍數加 1 時，避免最後一格和第一格同色。
-        if (i === list.length - 1 && list.length % 4 === 1 && list.length > 1) colorIdx = 1;
+        if (i === list.length - 1 && list.length > 1 && colorIdx === 0) colorIdx = 3;
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, sr, start, start + seg);
@@ -644,7 +658,7 @@
         if (flip) ctx.rotate(Math.PI);
         ctx.textAlign = flip ? "left" : "right";
         ctx.textBaseline = "middle";
-        ctx.fillStyle = (colorIdx % 2 === 0) ? inkLight : inkDark;
+        ctx.fillStyle = isLight(segFill[colorIdx]) ? inkDark : inkLight;
         var size = Math.max(22, Math.min(40, 330 / Math.max(list.length, 6)));
         ctx.font = "700 " + size + "px " + token("--font-display");
         var text = list[i].name;
@@ -918,7 +932,7 @@
     confettiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     var pr = pointerEl.getBoundingClientRect();
     var ox = pr.left + pr.width / 2, oy = pr.top + pr.height * 0.6;
-    var colors = [token("--seg-1"), token("--seg-2"), token("--seg-3"), token("--seg-4"), token("--sun"), "#ffffff", "#e8505b"];
+    var colors = [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return token("--seg-" + n); }).concat(["#ffffff"]);
     for (var i = 0; i < 140; i++) {
       var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3;
       var sp = 5 + Math.random() * 9;
