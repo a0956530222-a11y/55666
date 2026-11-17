@@ -155,14 +155,22 @@
     width: 60px; height: 60px; flex: none; border-radius: 22%;
     box-shadow: 0 6px 16px rgba(0, 0, 0, .28), 0 0 0 2px var(--hero-line);
   }
-  .eyebrow { margin: 0; font-size: .82rem; letter-spacing: .12em; color: var(--hero-muted); }
+  /* 橫幅上的小標與介紹：淺粉彩虹字＋陰影，在五彩底上也讀得到 */
+  .eyebrow, .intro {
+    background-image: linear-gradient(90deg, #ffb0b8, #ffc89a, #ffe98a, #c2f2a8, #a8efe3, #b8d6ff, #d4c6ff, #ffbfe0);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent; -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .55)) drop-shadow(0 0 4px rgba(0, 0, 0, .25));
+  }
+  .eyebrow { margin: 0; font-size: .82rem; letter-spacing: .12em; font-weight: 700; width: fit-content; max-width: 100%; }
   .hero h1 {
     font-family: var(--font-display); font-weight: 900;
     font-size: clamp(1.9rem, 6.5vw, 2.7rem); line-height: 1.15; margin: 2px 0 0;
     letter-spacing: .02em;
   }
   .hero h1 span { color: var(--hero-title-accent); }
-  .intro { margin: 0; color: var(--hero-muted); max-width: 40em; }
+  .intro { margin: 0; max-width: 40em; font-weight: 500; }
   @media (max-width: 600px) { .intro { min-height: 3.2em; } }
 
   .tabs {
@@ -217,7 +225,7 @@
   .pointer.tick svg { transform: rotate(-14deg); }
   .wheel-box canvas { touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; }
   .wheel-box canvas.grabbing { cursor: grabbing; }
-  .wheel-hint { margin: -6px 0 0; font-size: .85rem; color: var(--muted); text-align: center; }
+  .wheel-hint { margin: -6px 0 0; font-size: .85rem; text-align: center; }
   @media (prefers-reduced-motion: reduce) { .pointer svg { transition: none; } }
   .hub {
     position: absolute; left: 50%; top: 48.5%; transform: translate(-50%, -62%);
@@ -360,7 +368,15 @@
   }
   .add button { background: var(--fg); color: var(--bg); border: 0; }
   .reset { background: transparent; color: var(--muted); border: 1px solid var(--line); justify-self: start; }
-  .hint { font-size: .85rem; color: var(--muted); margin: 0; }
+  .hint { font-size: .85rem; margin: 0; }
+  /* 提示文字：深一階的五彩字（深色模式用亮彩虹），小字也看得清楚 */
+  .wheel-hint, .hint {
+    background-image: var(--note-grad);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent; -webkit-text-fill-color: transparent;
+    font-weight: 600;
+  }
+  .wheel-hint { width: fit-content; max-width: 100%; justify-self: center; }
 
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   /* 結果卡上的三個按鈕：各用一段深一階的彩虹漸層，白字才清楚 */
