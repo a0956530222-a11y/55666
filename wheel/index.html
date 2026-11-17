@@ -1154,16 +1154,27 @@
     confettiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     var pr = pointerEl.getBoundingClientRect();
     var ox = pr.left + pr.width / 2, oy = pr.top + pr.height * 0.6;
-    var colors = [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return token("--seg-" + n); }).concat(["#ffffff"]);
-    for (var i = 0; i < 140; i++) {
-      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3;
-      var sp = 5 + Math.random() * 9;
+    // 顏色：轉盤八色＋整圈彩虹色相＋粉彩＋金銀白，每片正反面顏色不同
+    var palette = [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return token("--seg-" + n); });
+    var shiny = ["#ffd34d", "#f2c94c", "#e8eef2", "#c0c7cf", "#ffffff"];
+    function pickColor() {
+      var r = Math.random();
+      if (r < 0.3) return palette[Math.floor(Math.random() * palette.length)];
+      if (r < 0.65) return "hsl(" + Math.floor(Math.random() * 360) + ", 90%, " + (52 + Math.floor(Math.random() * 14)) + "%)";
+      if (r < 0.85) return "hsl(" + Math.floor(Math.random() * 360) + ", 85%, 80%)";
+      return shiny[Math.floor(Math.random() * shiny.length)];
+    }
+    var SHAPES = ["rect", "rect", "round", "strip", "star"];
+    for (var i = 0; i < 190; i++) {
+      var a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.35;
+      var sp = 5 + Math.random() * 9.5;
+      var shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
       confetti.push({
         x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
-        w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+        w: 6 + Math.random() * 6, h: shape === "strip" ? 16 + Math.random() * 14 : 8 + Math.random() * 8,
         rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.4,
-        color: colors[i % colors.length], life: 0, max: 90 + Math.random() * 50,
-        round: Math.random() < 0.25
+        color: pickColor(), back: pickColor(), life: 0, max: 95 + Math.random() * 55,
+        shape: shape
       });
     }
     if (!confettiRunning) { confettiRunning = true; requestAnimationFrame(stepConfetti); }
@@ -1179,9 +1190,31 @@
       confettiCtx.globalAlpha = Math.max(0, 1 - c.life / c.max);
       confettiCtx.translate(c.x, c.y);
       confettiCtx.rotate(c.rot);
-      confettiCtx.fillStyle = c.color;
-      if (c.round) { confettiCtx.beginPath(); confettiCtx.arc(0, 0, c.w / 2, 0, Math.PI * 2); confettiCtx.fill(); }
-      else confettiCtx.fillRect(-c.w / 2, -c.h / 4, c.w, c.h / 2 * (0.4 + Math.abs(Math.cos(c.rot * 2))));
+      // 翻面時換成背面的顏色，看起來像紙片在空中翻轉
+      var flip = Math.cos(c.rot * 2);
+      confettiCtx.fillStyle = flip >= 0 ? c.color : c.back;
+      var squash = 0.35 + Math.abs(flip) * 0.65;
+      if (c.shape === "round") {
+        confettiCtx.beginPath(); confettiCtx.ellipse(0, 0, c.w / 2, c.w / 2 * squash, 0, 0, Math.PI * 2); confettiCtx.fill();
+      } else if (c.shape === "star") {
+        var R = c.w * 0.75, r2 = R * 0.45;
+        confettiCtx.beginPath();
+        for (var k = 0; k < 10; k++) {
+          var ang = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r2 : R;
+          confettiCtx.lineTo(Math.cos(ang) * rr, Math.sin(ang) * rr * squash);
+        }
+        confettiCtx.closePath(); confettiCtx.fill();
+      } else if (c.shape === "strip") {
+        // 細長彩帶，兩端帶一點彎
+        confettiCtx.beginPath();
+        confettiCtx.moveTo(-c.w * 0.25, -c.h / 2);
+        confettiCtx.quadraticCurveTo(c.w * 0.6, 0, -c.w * 0.25, c.h / 2);
+        confettiCtx.lineTo(c.w * 0.25, c.h / 2);
+        confettiCtx.quadraticCurveTo(c.w * 1.1, 0, c.w * 0.25, -c.h / 2);
+        confettiCtx.closePath(); confettiCtx.fill();
+      } else {
+        confettiCtx.fillRect(-c.w / 2, -c.h / 4, c.w, c.h / 2 * squash);
+      }
       confettiCtx.restore();
     });
     if (confetti.length) requestAnimationFrame(stepConfetti);
