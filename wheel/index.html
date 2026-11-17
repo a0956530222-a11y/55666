@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>台中轉轉樂</title>
 <meta name="description" content="美食、桌遊密室、登山三個轉盤，轉一下決定在台中吃什麼、玩什麼、爬哪座山。">
-<meta name="theme-color" content="#0f6b63" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0e1918" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#14857a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#143a36" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="台中轉轉樂">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
 <style>
@@ -28,6 +28,14 @@
     --accent: #0f6b63;
     --accent-fg: #ffffff;
     --sun: #e3a21a;
+    --hero-top: #14857a;
+    --hero-bottom: #0a4a44;
+    --hero-fg: #fff8e7;
+    --hero-muted: #cfe8e3;
+    --hero-line: rgba(255, 248, 231, .22);
+    --hero-tab-bg: rgba(4, 33, 30, .28);
+    --hero-tab-on: #fff8e7;
+    --hero-tab-on-fg: #0f6b63;
     --seg-1: #0f6b63;
     --seg-2: #e3a21a;
     --seg-3: #2f8f84;
@@ -41,6 +49,7 @@
     :root:not([data-theme="light"]) {
       --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
       --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
+      --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
       --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
       --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
       color-scheme: dark;
@@ -49,6 +58,7 @@
   :root[data-theme="dark"] {
     --bg: #0e1918; --surface: #152422; --fg: #e4efed; --muted: #94aaa6; --line: #2a3f3c;
     --accent: #4cc1b3; --accent-fg: #0b1716; --sun: #f0b93f;
+    --hero-top: #143a36; --hero-bottom: #0b1f1d; --hero-fg: #e4efed; --hero-muted: #9fc2bc; --hero-line: rgba(228, 239, 237, .16); --hero-tab-bg: rgba(0, 0, 0, .3); --hero-tab-on: #4cc1b3; --hero-tab-on-fg: #0b1716;
     --seg-1: #1f7f75; --seg-2: #d79a1c; --seg-3: #2d9e91; --seg-4: #e9bc4f;
     --seg-ink-dark: #0e1918; --seg-ink-light: #ffffff;
     color-scheme: dark;
@@ -62,27 +72,71 @@
     font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.6;
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
-    padding-top: calc(24px + env(safe-area-inset-top, 0px));
     padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
     margin: 0;
   }
-  .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 24px; }
-  header h1 {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: clamp(1.8rem, 5vw, 2.6rem);
-    line-height: 1.2;
-    margin: 0;
-    text-wrap: balance;
+  .wrap {
+    max-width: 980px; margin: 0 auto; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-top: 24px;
   }
-  header h1 span { color: var(--sun); }
-  header h1 { display: flex; align-items: center; gap: 12px; }
-  header h1 .logo { width: 1.5em; height: 1.5em; flex: none; border-radius: 22%; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
-  header p { margin: 6px 0 0; color: var(--muted); }
+  /* 頂部橫幅：滿版漸層，延伸到手機狀態列底下 */
+  .hero {
+    position: relative; overflow: hidden;
+    background: linear-gradient(170deg, var(--hero-top), var(--hero-bottom));
+    color: var(--hero-fg);
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+    padding-bottom: 18px;
+  }
+  .hero::before, .hero::after {
+    content: ""; position: absolute; border-radius: 50%; pointer-events: none;
+    background: repeating-conic-gradient(from 0deg, var(--hero-line) 0 22.5deg, transparent 22.5deg 45deg);
+  }
+  .hero::before { width: 340px; height: 340px; right: -110px; top: -120px; opacity: .55; }
+  .hero::after { width: 160px; height: 160px; left: -60px; bottom: -80px; opacity: .35; }
+  .is-spinning .hero::before { animation: hero-spin 1.2s linear infinite; }
+  @keyframes hero-spin { to { transform: rotate(360deg); } }
+  .hero-in {
+    position: relative; z-index: 1;
+    max-width: 980px; margin: 0 auto; display: grid; gap: 14px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .brand .logo {
+    width: 60px; height: 60px; flex: none; border-radius: 22%;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .28), 0 0 0 2px var(--hero-line);
+  }
+  .eyebrow { margin: 0; font-size: .82rem; letter-spacing: .12em; color: var(--hero-muted); }
+  .hero h1 {
+    font-family: var(--font-display); font-weight: 900;
+    font-size: clamp(1.9rem, 6.5vw, 2.7rem); line-height: 1.15; margin: 2px 0 0;
+    letter-spacing: .02em;
+  }
+  .hero h1 span { color: var(--sun); }
+  .intro { margin: 0; color: var(--hero-muted); max-width: 40em; }
+  @media (max-width: 600px) { .intro { min-height: 3.2em; } }
 
-  .layout { display: grid; gap: 24px; grid-template-columns: 1fr; align-items: start; }
+  .tabs {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px;
+    background: var(--hero-tab-bg); border: 1px solid var(--hero-line); border-radius: 16px;
+  }
+  .tab {
+    font: 700 .98rem var(--font-body); color: var(--hero-fg); background: transparent; border: 0;
+    border-radius: 12px; min-height: 52px; padding: 6px 4px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background .2s, color .2s;
+  }
+  .tab svg { width: 20px; height: 20px; flex: none; }
+  .tab:hover { background: rgba(255, 255, 255, .08); }
+  .tab[aria-selected="true"] { background: var(--hero-tab-on); color: var(--hero-tab-on-fg); box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+  .tab:disabled { cursor: wait; }
+  .tab:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+  @media (max-width: 340px) { .tab svg { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .is-spinning .hero::before { animation: none; } .tab { transition: none; } }
+
+  .layout { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); align-items: start; }
   @media (min-width: 820px) { .layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
 
   .stage { display: grid; justify-items: center; gap: 16px; min-width: 0; }
@@ -113,7 +167,7 @@
   .spin-btn:disabled { opacity: .6; cursor: wait; }
   button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
 
-  .panel { display: grid; gap: 16px; min-width: 0; }
+  .panel { display: grid; gap: 16px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
   .result {
     background: var(--surface); border: 2px solid var(--fg); border-radius: 14px;
     padding: 16px 18px; min-height: 132px;
@@ -125,7 +179,7 @@
   .result.pop .name { animation: pop .45s ease-out; }
   @keyframes pop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-  .box { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 10px; }
+  .box { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
   .box h2 { font-size: 1rem; margin: 0; }
   .filters, .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .filter {
@@ -181,27 +235,37 @@
   .toggle { display: flex; gap: 10px; align-items: center; font-size: .92rem; cursor: pointer; min-height: 40px; }
   .toggle input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
 
-  .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
-  .tab { font: 700 1rem var(--font-body); color: var(--muted); background: transparent; border: 0;
-    border-radius: 10px; min-height: 46px; padding: 6px 4px; cursor: pointer; }
-  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); }
-  .tab:disabled { cursor: wait; }
-
   @media (prefers-reduced-motion: reduce) { .result.pop .name { animation: none; } }
 </style>
 
-<div class="wrap">
-  <header>
-    <h1><img class="logo" src="icons/icon-192.png" alt="" width="48" height="48">台中<span>轉轉樂</span></h1>
-    <p id="intro"></p>
-  </header>
+<header class="hero">
+  <div class="hero-in">
+    <div class="brand">
+      <img class="logo" src="icons/icon-192.png" alt="" width="60" height="60">
+      <div>
+        <p class="eyebrow">吃什麼・玩什麼・爬哪座山</p>
+        <h1>台中<span>轉轉樂</span></h1>
+      </div>
+    </div>
+    <p class="intro" id="intro"></p>
+    <nav class="tabs" role="tablist" aria-label="選擇轉盤">
+      <button class="tab" type="button" role="tab" id="tab-food" data-key="food">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M8 7c0-1.5 1-1.5 1-3M12 7c0-1.5 1-1.5 1-3M16 7c0-1.5 1-1.5 1-3"/></svg>
+        <span>美食</span>
+      </button>
+      <button class="tab" type="button" role="tab" id="tab-games" data-key="games">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+        <span>桌遊密室</span>
+      </button>
+      <button class="tab" type="button" role="tab" id="tab-hike" data-key="hike">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20 9 7l4 7 2-3 7 9Z"/><path d="m7.5 10 1.5 1.5L11 10"/></svg>
+        <span>登山</span>
+      </button>
+    </nav>
+  </div>
+</header>
 
-  <nav class="tabs" role="tablist" aria-label="選擇轉盤">
-    <button class="tab" type="button" role="tab" id="tab-food" data-key="food">美食</button>
-    <button class="tab" type="button" role="tab" id="tab-games" data-key="games">桌遊密室</button>
-    <button class="tab" type="button" role="tab" id="tab-hike" data-key="hike">登山</button>
-  </nav>
+<div class="wrap">
 
   <div class="layout">
     <section class="stage" aria-label="轉盤">
@@ -594,6 +658,7 @@
     var list = active();
     if (!list.length && filter() !== "全部") { filters[current] = "全部"; list = active(); }
     spinBtn.disabled = hub.disabled = spinning || list.length < 2;
+    document.documentElement.classList.toggle("is-spinning", spinning);
     renderTabs();
     renderFilters();
     renderChips();
