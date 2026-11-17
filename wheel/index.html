@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#0f6b63" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1918" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -77,6 +78,8 @@
     text-wrap: balance;
   }
   header h1 span { color: var(--sun); }
+  header h1 { display: flex; align-items: center; gap: 12px; }
+  header h1 .logo { width: 1.5em; height: 1.5em; flex: none; border-radius: 22%; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
   header p { margin: 6px 0 0; color: var(--muted); }
 
   .layout { display: grid; gap: 24px; grid-template-columns: 1fr; align-items: start; }
@@ -190,7 +193,7 @@
 
 <div class="wrap">
   <header>
-    <h1>台中<span>轉轉樂</span></h1>
+    <h1><img class="logo" src="icons/icon-192.png" alt="" width="48" height="48">台中<span>轉轉樂</span></h1>
     <p id="intro"></p>
   </header>
 

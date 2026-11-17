@@ -13,12 +13,20 @@
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icons/icon-maskable-512.png",
@@ -30,15 +38,73 @@
   "shortcuts": [
     {
       "name": "美食轉盤",
-      "url": "./#food"
+      "url": "./#food",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "桌遊密室轉盤",
-      "url": "./#games"
+      "url": "./#games",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "登山轉盤",
-      "url": "./#hike"
+      "url": "./#hike",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
+  ],
+  "id": "./",
+  "screenshots": [
+    {
+      "src": "screenshots/food.jpg",
+      "sizes": "1080x2400",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "美食轉盤：轉到逢甲夜市的攤位"
+    },
+    {
+      "src": "screenshots/games.jpg",
+      "sizes": "1080x2400",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "桌遊密室轉盤：決定今晚玩什麼"
+    },
+    {
+      "src": "screenshots/hike.jpg",
+      "sizes": "1080x2400",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "登山轉盤：依難度挑一座山"
+    },
+    {
+      "src": "screenshots/wide.jpg",
+      "sizes": "1280x800",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "台中轉轉樂電腦版畫面"
+    }
+  ],
+  "categories": [
+    "food",
+    "travel",
+    "entertainment",
+    "lifestyle"
   ]
 }
